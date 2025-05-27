@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Infográfico: Desvendando o Mundo dos Ângulos com IA e Chat</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            scroll-behavior: smooth;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 400px; 
+            margin-left: auto;
+            margin-right: auto;
+            height: 280px; 
+            max-height: 350px;
+        }
+        @media (min-width: 768px) { /* md breakpoint */
+            .chart-container {
+                height: 300px;
+            }
+        }
+        .angle-diagram {
+            width: 120px;
+            height: 100px;
+            position: relative;
+            margin: 10px auto;
+        }
+        .angle-diagram .ray {
+            width: 70px;
+            height: 4px;
+            background-color: #272932; /* Texto Escuro */
+            position: absolute;
+            bottom: 50%;
+            left: 50%;
+            transform-origin: 0% 50%;
+        }
+        .angle-diagram .vertex {
+            width: 10px;
+            height: 10px;
+            background-color: #FF9F1C; /* Laranja Vibrante */
+            border-radius: 50%;
+            position: absolute;
+            bottom: calc(50% - 5px);
+            left: calc(50% - 5px);
+            z-index: 1;
+        }
+        .angle-diagram .arc {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            position: absolute;
+            bottom: calc(50% - 20px);
+            left: calc(50% - 20px);
+            clip-path: polygon(50% 50%, 100% 50%, 100% 0, 0 0, 0 100%, 50% 100%);
+        }
+        .sticky-nav {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            background-color: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(8px);
+            padding: 0.5rem 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .nav-link.active {
+            font-weight: 700;
+            color: #FF9F1C;
+            border-bottom: 2px solid #FF9F1C;
+        }
+        .parallel-lines-diagram {
+            width: 100%;
+            max-width: 350px;
+            height: 200px;
+            position: relative;
+            margin: 20px auto;
+            border: 1px solid #E0E0E0;
+            padding: 10px;
+        }
+        .parallel-lines-diagram .line {
+            width: 100%;
+            height: 3px;
+            background-color: #2EC4B6;
+            position: absolute;
+        }
+        .parallel-lines-diagram .line1 { top: 30%; left: 0; }
+        .parallel-lines-diagram .line2 { top: 70%; left: 0; }
+        .parallel-lines-diagram .transversal {
+            width: 3px;
+            height: 110%;
+            background-color: #FF9F1C;
+            position: absolute;
+            top: -5%;
+            left: 50%;
+            transform: translateX(-50%) rotate(30deg);
+        }
+        .parallel-lines-diagram .angle-label {
+            position: absolute;
+            font-size: 0.75rem;
+            font-weight: bold;
+            color: #272932;
+            background-color: rgba(255,255,255,0.7);
+            padding: 1px 3px;
+            border-radius: 3px;
+        }
+        .gemini-btn {
+            margin-left: 0.5rem;
+            font-size: 0.75rem; 
+            background-color: #FFBF69; 
+            color: #272932; 
+            padding: 2px 8px; 
+            border-radius: 9999px; 
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            transition: all 0.15s ease-in-out;
+        }
+        .gemini-btn:hover {
+            background-color: #FF9F1C; 
+            transform: scale(1.05);
+        }
+        .chat-bubble-user {
+            background-color: #FFBF69; /* Amarelo Solar */
+            color: #272932;
+            border-radius: 0.75rem; /* rounded-xl */
+            border-bottom-right-radius: 0.125rem; /* rounded-br-sm */
+            padding: 0.5rem 0.75rem; /* p-2 px-3 */
+            max-width: 80%;
+            align-self: flex-end;
+        }
+        .chat-bubble-model {
+            background-color: #E0E7FF; /* Azul Lavanda Suave (novo) */
+            color: #272932;
+            border-radius: 0.75rem; /* rounded-xl */
+            border-bottom-left-radius: 0.125rem; /* rounded-bl-sm */
+            padding: 0.5rem 0.75rem; /* p-2 px-3 */
+            max-width: 80%;
+            align-self: flex-start;
+        }
+    </style>
+</head>
+<body class="bg-[#F7F7F7] text-[#272932]">
+
+    <nav id="navbar" class="sticky-nav">
+        <div class="container mx-auto px-4">
+            <ul class="flex justify-center space-x-3 md:space-x-6 py-2 overflow-x-auto whitespace-nowrap text-sm">
+                <li><a href="#definicao" class="nav-link px-2 py-2 text-gray-600 hover:text-[#FF9F1C]">O que é?</a></li>
+                <li><a href="#medindo" class="nav-link px-2 py-2 text-gray-600 hover:text-[#FF9F1C]">Medindo</a></li>
+                <li><a href="#tipos" class="nav-link px-2 py-2 text-gray-600 hover:text-[#FF9F1C]">Tipos</a></li>
+                <li><a href="#relacoes" class="nav-link px-2 py-2 text-gray-600 hover:text-[#FF9F1C]">Relações</a></li>
+                <li><a href="#pares" class="nav-link px-2 py-2 text-gray-600 hover:text-[#FF9F1C]">Pares</a></li>
+                <li><a href="#paralelas" class="nav-link px-2 py-2 text-gray-600 hover:text-[#FF9F1C]">Retas Paralelas</a></li>
+            </ul>
+        </div>
+        </nav>
+
+    <header class="bg-gradient-to-r from-[#2EC4B6] to-[#90BE6D] text-white py-10 md:py-16 text-center">
+        <div class="container mx-auto px-4">
+            <h1 class="text-3xl md:text-4xl font-bold mb-3">Desvendando o Mundo dos Ângulos!</h1>
+            <p class="text-md md:text-lg max-w-2xl mx-auto">Um guia divertido para entender tudo sobre ângulos, preparado para o 8º ano, agora com ajuda da IA!</p>
+        </div>
+    </header>
+
+    <main class="container mx-auto p-4 md:p-6">
+
+        <section id="definicao" class="mb-10 md:mb-12 scroll-mt-20">
+            <h2 class="text-2xl md:text-3xl font-semibold text-[#2EC4B6] mb-4 text-center">O que é um Ângulo? 🤔</h2>
+            <div class="bg-[#FFFFFF] rounded-lg shadow-xl p-6 max-w-2xl mx-auto text-center">
+                <p class="text-lg mb-1">Imagine duas linhas retas que saem do mesmo pontinho. A "abertura" entre essas linhas é o que chamamos de <strong>ângulo</strong>!
+                    <button class="gemini-btn gemini-explain-btn" data-concept="O que é um ângulo, seus lados e vértice">Explique Melhor ✨</button>
+                </p>
+                <div class="angle-diagram mx-auto my-4 border border-dashed border-[#FFBF69] p-2 rounded">
+                    <div class="vertex"></div>
+                    <div class="ray" style="transform: rotate(0deg);"></div>
+                    <div class="ray" style="transform: rotate(-45deg);"></div>
+                    <div class="arc" style="border-top: 3px solid #FF9F1C; border-right: 3px solid #FF9F1C; transform: rotate(-42deg) scale(0.8) translate(7px, -7px);"></div>
+                    <span class="absolute bottom-[52%] left-[calc(50%+10px)] text-xs text-[#FF9F1C] font-bold">Ângulo</span>
+                </div>
+                <p class="text-md">As duas linhas são os <strong>lados</strong> do ângulo, e o pontinho de onde elas saem é o <strong>vértice</strong>.</p>
+            </div>
+        </section>
+
+        <section id="medindo" class="mb-10 md:mb-12 scroll-mt-20">
+            <h2 class="text-2xl md:text-3xl font-semibold text-[#2EC4B6] mb-4 text-center">Como Medimos Ângulos? 📏</h2>
+            <div class="bg-[#FFFFFF] rounded-lg shadow-xl p-6 max-w-2xl mx-auto">
+                <p class="text-lg mb-3">Medimos ângulos usando uma unidade chamada <strong>grau</strong>, que tem o símbolo <strong>°</strong>.</p>
+                <div class="text-center my-4">
+                    <span class="text-6xl text-[#FF9F1C]">📐</span>
+                    <p class="text-md mt-2">Usamos um instrumento chamado <strong>transferidor</strong> para medir ou desenhar ângulos.</p>
+                </div>
+                <p class="text-md mb-2">Uma volta completa, como um círculo, tem <strong>360°</strong>. Pense numa pizza inteira!</p>
+                <p class="text-md">Para medidas ainda menores, usamos os <strong>minutos (')</strong> e os <strong>segundos ('')</strong>:</p>
+                <ul class="list-disc list-inside ml-4 text-md space-y-1">
+                    <li>1 grau (1°) = 60 minutos (60')</li>
+                    <li>1 minuto (1') = 60 segundos (60'')</li>
+                </ul>
+            </div>
+        </section>
+
+        <section id="tipos" class="mb-10 md:mb-12 scroll-mt-20">
+            <h2 class="text-2xl md:text-3xl font-semibold text-[#2EC4B6] mb-6 text-center">Quais são os Tipos de Ângulos? 🧐</h2>
+            <p class="text-center text-gray-700 mb-6 max-w-2xl mx-auto">Dependendo da sua "abertura" (medida), os ângulos recebem nomes diferentes. Vamos conhecer os principais:</p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                
+                <div class="bg-[#FFFFFF] rounded-lg shadow-xl p-5 text-center hover:shadow-2xl transition-shadow">
+                    <h3 class="text-xl font-bold text-[#FF9F1C] mb-2">Ângulo Agudo</h3>
+                    <div class="angle-diagram mx-auto my-2 h-20">
+                        <div class="vertex"></div>
+                        <div class="ray" style="transform: rotate(0deg);"></div>
+                        <div class="ray" style="transform: rotate(-30deg);"></div>
+                    </div>
+                    <p>Menor que 90°.<br/>(0° &lt; agudo &lt; 90°)</p>
+                    <p class="text-xs text-gray-500 mt-1">Ex: 30°, 45°, 89°</p>
+                </div>
+
+                <div class="bg-[#FFFFFF] rounded-lg shadow-xl p-5 text-center hover:shadow-2xl transition-shadow">
+                    <h3 class="text-xl font-bold text-[#FF9F1C] mb-2">Ângulo Reto</h3>
+                    <div class="angle-diagram mx-auto my-2 h-20">
+                        <div class="vertex"></div>
+                        <div class="ray" style="transform: rotate(0deg);"></div>
+                        <div class="ray" style="transform: rotate(-90deg);"></div>
+                        <div class="w-4 h-4 border-l-2 border-b-2 border-[#272932] absolute bottom-[calc(50%)] left-[calc(50%)]"></div>
+                    </div>
+                    <p>Exatamente 90°.<br/>(Forma um "L")</p>
+                    <p class="text-2xl font-bold text-[#2EC4B6] mt-1">90°</p>
+                </div>
+
+                <div class="bg-[#FFFFFF] rounded-lg shadow-xl p-5 text-center hover:shadow-2xl transition-shadow">
+                    <h3 class="text-xl font-bold text-[#FF9F1C] mb-2">Ângulo Obtuso</h3>
+                     <div class="angle-diagram mx-auto my-2 h-20">
+                        <div class="vertex"></div>
+                        <div class="ray" style="transform: rotate(0deg);"></div>
+                        <div class="ray" style="transform: rotate(-120deg);"></div>
+                    </div>
+                    <p>Maior que 90° e menor que 180°.<br/>(90° &lt; obtuso &lt; 180°)</p>
+                    <p class="text-xs text-gray-500 mt-1">Ex: 100°, 150°, 179°</p>
+                </div>
+
+                <div class="bg-[#FFFFFF] rounded-lg shadow-xl p-5 text-center hover:shadow-2xl transition-shadow sm:col-span-1 lg:col-span-1">
+                    <h3 class="text-xl font-bold text-[#FF9F1C] mb-2">Ângulo Raso</h3>
+                    <div class="angle-diagram mx-auto my-2 h-20">
+                        <div class="vertex"></div>
+                        <div class="ray" style="transform: rotate(0deg);"></div>
+                        <div class="ray" style="transform: rotate(-180deg);"></div>
+                    </div>
+                    <p>Exatamente 180°.<br/>(Uma linha reta)</p>
+                    <p class="text-2xl font-bold text-[#2EC4B6] mt-1">180°</p>
+                </div>
+                 <div class="bg-[#FFFFFF] rounded-lg shadow-xl p-5 text-center hover:shadow-2xl transition-shadow sm:col-span-2 lg:col-span-2">
+                    <h3 class="text-xl font-bold text-[#FF9F1C] mb-2">Ângulo de Uma Volta (ou Pleno)</h3>
+                    <div class="relative w-24 h-24 mx-auto my-2 flex items-center justify-center">
+                        <div class="w-2 h-2 bg-[#FF9F1C] rounded-full absolute z-10"></div>
+                        <div class="w-12 h-1 bg-[#272932] absolute left-1/2 top-1/2 transform -translate-y-1/2"></div>
+                        <div class="w-20 h-20 border-4 border-dashed border-[#2EC4B6] rounded-full animate-spin-slow" style="animation-duration: 5s;"></div>
+                         <style> @keyframes spin-slow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } } </style>
+                    </div>
+                    <p>Exatamente 360°.<br/>(Uma volta completa)</p>
+                    <p class="text-2xl font-bold text-[#2EC4B6] mt-1">360°</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="relacoes" class="mb-10 md:mb-12 scroll-mt-20">
+            <h2 class="text-2xl md:text-3xl font-semibold text-[#2EC4B6] mb-6 text-center">Relações Entre Ângulos 🤝</h2>
+            <p class="text-center text-gray-700 mb-6 max-w-2xl mx-auto">Os ângulos podem se relacionar de formas interessantes. Vamos ver algumas delas:</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-[#FFFFFF] rounded-lg shadow-xl p-5">
+                    <h3 class="text-xl font-bold text-[#FF9F1C] mb-2">Ângulos Consecutivos</h3>
+                    <p>São ângulos que têm o mesmo vértice e um lado em comum. São "vizinhos" que compartilham uma parede!</p>
+                </div>
+                <div class="bg-[#FFFFFF] rounded-lg shadow-xl p-5">
+                    <h3 class="text-xl font-bold text-[#FF9F1C] mb-2">Ângulos Adjacentes</h3>
+                    <p>São ângulos consecutivos que NÃO têm pontos internos em comum. São vizinhos que compartilham uma parede, mas cada um fica no seu espaço.</p>
+                </div>
+                <div class="bg-[#FFFFFF] rounded-lg shadow-xl p-5 md:col-span-2">
+                    <h3 class="text-xl font-bold text-[#FF9F1C] mb-2 text-center">Ângulos Opostos Pelo Vértice (O.P.V.)</h3>
+                    <p class="text-center mb-1">Quando duas retas se cruzam, elas formam quatro ângulos. Os ângulos que ficam "de frente" um para o outro (opostos pelo vértice) são IGUAIS!
+                        <button class="gemini-btn gemini-explain-btn" data-concept="Ângulos Opostos Pelo Vértice (O.P.V.)">Explique Melhor ✨</button>
+                    </p>
+                    <div class="relative w-40 h-32 mx-auto border border-dashed border-gray-300 p-1 mt-2">
+                        <div class="absolute w-full h-1 bg-[#272932] top-1/2 left-0 transform -translate-y-1/2 rotate-[-20deg]"></div>
+                        <div class="absolute w-full h-1 bg-[#272932] top-1/2 left-0 transform -translate-y-1/2 rotate-[20deg]"></div>
+                        <span class="absolute top-[35%] left-[30%] text-sm text-[#FF9F1C] font-bold">α</span>
+                        <span class="absolute bottom-[35%] right-[30%] text-sm text-[#FF9F1C] font-bold">α</span>
+                        <span class="absolute top-[35%] right-[30%] text-sm text-[#2EC4B6] font-bold">β</span>
+                        <span class="absolute bottom-[35%] left-[30%] text-sm text-[#2EC4B6] font-bold">β</span>
+                    </div>
+                     <p class="text-center mt-2 text-sm">Na figura, os ângulos α são iguais, e os ângulos β também são iguais entre si.</p>
+                </div>
+                 <div class="bg-[#FFFFFF] rounded-lg shadow-xl p-5 md:col-span-2">
+                    <h3 class="text-xl font-bold text-[#FF9F1C] mb-2 text-center">Bissetriz de um Ângulo</h3>
+                    <p class="text-center mb-1">A bissetriz é uma semirreta que sai do vértice do ângulo e o divide em DOIS ângulos exatamente IGUAIS. É como cortar uma fatia de pizza perfeitamente ao meio!
+                        <button class="gemini-btn gemini-explain-btn" data-concept="Bissetriz de um Ângulo">Explique Melhor ✨</button>
+                    </p>
+                     <div class="angle-diagram mx-auto my-4 border border-dashed border-gray-300 p-1">
+                        <div class="vertex"></div>
+                        <div class="ray" style="transform: rotate(0deg);"></div>
+                        <div class="ray" style="transform: rotate(-60deg);"></div>
+                        <div class="ray" style="transform: rotate(-30deg); background-color: #FF9F1C; opacity:0.7; height:3px;"></div>
+                        <span class="absolute bottom-[55%] left-[calc(50%+20px)] text-xs text-[#2EC4B6] font-bold" style="transform: rotate(-15deg);">x</span>
+                        <span class="absolute bottom-[40%] left-[calc(50%+20px)] text-xs text-[#2EC4B6] font-bold" style="transform: rotate(-45deg);">x</span>
+                    </div>
+                    <p class="text-center mt-2 text-sm">A linha laranja é a bissetriz, dividindo o ângulo em duas partes 'x' iguais.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="pares" class="mb-10 md:mb-12 scroll-mt-20">
+            <h2 class="text-2xl md:text-3xl font-semibold text-[#2EC4B6] mb-6 text-center">Pares Especiais de Ângulos ➕</h2>
+            <p class="text-center text-gray-700 mb-2 max-w-2xl mx-auto">Alguns pares de ângulos têm somas especiais. Olha só:
+                 <button class="gemini-btn gemini-problem-btn" data-topic="Ângulos Complementares e Suplementares">Crie um Problema Prático ✨</button>
+            </p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-4">
+                <div class="bg-[#FFFFFF] rounded-lg shadow-xl p-5">
+                    <h3 class="text-xl font-bold text-[#FF9F1C] mb-3 text-center">Ângulos Complementares</h3>
+                    <p class="text-center mb-3">São dois ângulos que, juntos, somam <strong>90°</strong> (formam um ângulo reto).</p>
+                    <div class="chart-container h-64">
+                        <canvas id="complementaryAnglesChart"></canvas>
+                    </div>
+                    <p class="text-center text-sm mt-2">Exemplo: Um ângulo de 30° e um de 60° são complementares (30° + 60° = 90°).</p>
+                </div>
+                <div class="bg-[#FFFFFF] rounded-lg shadow-xl p-5">
+                    <h3 class="text-xl font-bold text-[#FF9F1C] mb-3 text-center">Ângulos Suplementares</h3>
+                    <p class="text-center mb-3">São dois ângulos que, juntos, somam <strong>180°</strong> (formam um ângulo raso).</p>
+                    <div class="chart-container h-64">
+                        <canvas id="supplementaryAnglesChart"></canvas>
+                    </div>
+                    <p class="text-center text-sm mt-2">Exemplo: Um ângulo de 110° e um de 70° são suplementares (110° + 70° = 180°).</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="paralelas" class="scroll-mt-20">
+            <h2 class="text-2xl md:text-3xl font-semibold text-[#2EC4B6] mb-6 text-center">Ângulos e Retas Paralelas Cortadas por uma Transversal 🚧</h2>
+            <p class="text-center text-gray-700 mb-2 max-w-2xl mx-auto">Quando duas retas paralelas (que nunca se cruzam) são cortadas por uma terceira reta (chamada transversal), formam-se 8 ângulos com relações bem legais entre si!
+                <button class="gemini-btn gemini-explain-btn" data-concept="Relações entre ângulos formados por retas paralelas e uma transversal">Explique Melhor ✨</button>
+            </p>
+            <div class="bg-[#FFFFFF] rounded-lg shadow-xl p-5 mt-4">
+                <h3 class="text-xl font-bold text-[#FF9F1C] mb-3 text-center">O Desenho da Situação</h3>
+                <div class="parallel-lines-diagram">
+                    <div class="line line1"></div>
+                    <div class="line line2"></div>
+                    <div class="transversal"></div>
+                    <span class="angle-label" style="top: 20%; left: 38%;">1</span>
+                    <span class="angle-label" style="top: 20%; left: 60%;">2</span>
+                    <span class="angle-label" style="top: 40%; left: 38%;">4</span>
+                    <span class="angle-label" style="top: 40%; left: 60%;">3</span>
+                    <span class="angle-label" style="top: 60%; left: 38%;">5</span>
+                    <span class="angle-label" style="top: 60%; left: 60%;">6</span>
+                    <span class="angle-label" style="top: 80%; left: 38%;">8</span>
+                    <span class="angle-label" style="top: 80%; left: 60%;">7</span>
+                </div>
+                <p class="text-center text-sm mt-3 mb-5">As linhas azuis são paralelas (r // s), e a laranja é a transversal (t).</p>
+                
+                <h3 class="text-lg font-semibold text-[#272932] mb-3">Principais Relações (e são muitas!):</h3>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full text-sm divide-y divide-gray-200">
+                        <thead class="bg-gray-100">
+                            <tr>
+                                <th class="px-4 py-2 text-left font-semibold text-[#272932]">Tipo de Par</th>
+                                <th class="px-4 py-2 text-left font-semibold text-[#272932]">Exemplos na Figura</th>
+                                <th class="px-4 py-2 text-left font-semibold text-[#272932]">Propriedade</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            <tr> <td class="px-4 py-2">Correspondentes</td> <td class="px-4 py-2">1 e 5; 2 e 6; 4 e 8; 3 e 7</td> <td class="px-4 py-2 text-[#90BE6D] font-semibold">São IGUAIS</td> </tr>
+                            <tr> <td class="px-4 py-2">Alternos Internos</td> <td class="px-4 py-2">4 e 6; 3 e 5</td> <td class="px-4 py-2 text-[#90BE6D] font-semibold">São IGUAIS</td> </tr>
+                            <tr> <td class="px-4 py-2">Alternos Externos</td> <td class="px-4 py-2">1 e 7; 2 e 8</td> <td class="px-4 py-2 text-[#90BE6D] font-semibold">São IGUAIS</td> </tr>
+                            <tr> <td class="px-4 py-2">Colaterais Internos</td> <td class="px-4 py-2">4 e 5; 3 e 6</td> <td class="px-4 py-2 text-[#FFBF69] font-semibold">Somam 180° (Suplementares)</td> </tr>
+                            <tr> <td class="px-4 py-2">Colaterais Externos</td> <td class="px-4 py-2">1 e 8; 2 e 7</td> <td class="px-4 py-2 text-[#FFBF69] font-semibold">Somam 180° (Suplementares)</td> </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <button id="openChatBtn" title="Ajuda sobre Ângulos" class="fixed bottom-6 right-6 bg-[#FF9F1C] text-white p-3 md:p-4 rounded-full shadow-lg hover:bg-[#FFBF69] focus:bg-[#FFBF69] transition-transform duration-150 ease-in-out hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#FF9F1C] z-[90]">
+        <span class="text-2xl md:text-3xl">💬</span>
+        <span class="sr-only">Abrir Chat de Ajuda</span>
+    </button>
+
+    <div id="geminiChatModal" class="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-end justify-center sm:items-center p-0 sm:p-4 z-[100] hidden">
+        <div class="bg-white rounded-t-lg sm:rounded-lg shadow-xl w-full max-w-lg flex flex-col" style="height: 90vh; max-height: 600px; sm:height: 80vh;">
+            <div class="flex justify-between items-center p-3 md:p-4 border-b border-gray-200 bg-[#2EC4B6] text-white rounded-t-lg">
+                <h3 class="text-lg md:text-xl font-semibold">Chat de Ajuda sobre Ângulos 📐✨</h3>
+                <button id="closeChatModal" class="text-white hover:text-gray-200 text-2xl font-bold">&times;</button>
+            </div>
+            <div id="chatMessages" class="flex-grow p-3 md:p-4 space-y-3 overflow-y-auto">
+                <div class="flex">
+                    <div class="chat-bubble-model">
+                        <p>Olá! Sou seu assistente de ângulos. 😊 Posso te ajudar a entender melhor algum conceito, ou até criar uma atividade para você praticar. O que gostaria de fazer?</p>
+                    </div>
+                </div>
+            </div>
+            <div id="chatTypingIndicator" class="px-4 py-2 text-sm text-gray-500 hidden">A IA está a digitar...</div>
+            <div class="p-3 md:p-4 border-t border-gray-200 bg-gray-50">
+                <div class="flex items-center space-x-2">
+                    <input type="text" id="chatInput" class="flex-grow border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-[#FF9F1C] focus:border-transparent" placeholder="Sua pergunta ou pedido aqui...">
+                    <button id="sendChatBtn" title="Enviar Mensagem" class="bg-[#FF9F1C] text-white p-2 rounded-lg hover:bg-[#FFBF69] focus:bg-[#FFBF69] transition-colors focus:outline-none">
+                        <span class="text-xl">➢</span>
+                         <span class="sr-only">Enviar</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="geminiModal" class="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center p-4 z-[100] hidden">
+        <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-lg max-h-[80vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h3 id="geminiModalTitle" class="text-xl font-semibold text-[#2EC4B6]">✨ Assistente de Ângulos ✨</h3>
+                <button id="closeGeminiModal" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+            </div>
+            <div id="geminiModalContent" class="text-gray-700 text-sm md:text-base">
+                </div>
+        </div>
+    </div>
+
+
+    <footer class="bg-[#272932] text-[#F7F7F7] py-6 text-center mt-12">
+        <p>&copy; <span id="currentYear"></span> Assunto: Ângulos. Feito com 💙 para os alunos do Prof. Radimak!</p>
+        <p class="text-xs mt-1">Conteúdo educacional para o 8º ano.</p>
+    </footer>
+
+    <script>
+        document.getElementById('currentYear').textContent = new Date().getFullYear();
+
+        function wrapLabels(label, maxWidth) {
+            if (typeof label !== 'string' || label.length <= maxWidth) { return label; }
+            const words = label.split(' ');
+            const lines = [];
+            let currentLine = '';
+            for (const word of words) {
+                if ((currentLine + ' ' + word).trim().length > maxWidth && currentLine.length > 0) {
+                    lines.push(currentLine.trim());
+                    currentLine = word;
+                } else {
+                    currentLine = (currentLine + ' ' + word).trim();
+                }
+            }
+            if (currentLine.length > 0) { lines.push(currentLine.trim()); }
+            return lines.length > 0 ? lines : label;
+        }
+        
+        const commonChartOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'bottom', labels: { color: '#272932', font: { family: 'Poppins, sans-serif', size: 12 } } },
+                tooltip: {
+                    backgroundColor: 'rgba(39, 41, 50, 0.8)',
+                    titleFont: { family: 'Poppins, sans-serif', size: 13, weight: 'bold' },
+                    bodyFont: { family: 'Poppins, sans-serif', size: 11 },
+                    callbacks: {
+                        title: function(tooltipItems) {
+                            const item = tooltipItems[0];
+                            let label = item.chart.data.labels[item.dataIndex];
+                            return Array.isArray(label) ? label.join(' ') : label;
+                        },
+                        label: function(context) {
+                            let label = context.dataset.label || context.label || '';
+                            if (label) { label += ': '; }
+                            if (context.parsed !== null) { label += context.parsed + '°'; }
+                            return label;
+                        }
+                    }
+                }
+            },
+        };
+
+        const chartColors = ['#2EC4B6', '#FF9F1C', '#FFBF69', '#90BE6D'];
+
+        const complementaryAnglesCtx = document.getElementById('complementaryAnglesChart')?.getContext('2d');
+        if (complementaryAnglesCtx) {
+            new Chart(complementaryAnglesCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Ângulo 1 (Ex: 30°)', 'Ângulo 2 (Ex: 60°)'],
+                    datasets: [{ data: [30, 60], backgroundColor: [chartColors[0], chartColors[1]], borderColor: '#FFFFFF', borderWidth: 3, hoverOffset: 4 }]
+                },
+                options: { ...commonChartOptions }
+            });
+        }
+
+        const supplementaryAnglesCtx = document.getElementById('supplementaryAnglesChart')?.getContext('2d');
+        if (supplementaryAnglesCtx) {
+            new Chart(supplementaryAnglesCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Ângulo A (Ex: 110°)', 'Ângulo B (Ex: 70°)'],
+                    datasets: [{ data: [110, 70], backgroundColor: [chartColors[2], chartColors[3]], borderColor: '#FFFFFF', borderWidth: 3, hoverOffset: 4 }]
+                },
+                options: { ...commonChartOptions }
+            });
+        }
+
+        const sections = document.querySelectorAll('section[id]');
+        const navLinks = document.querySelectorAll('#navbar a.nav-link');
+        const navbar = document.getElementById('navbar'); 
+        const navbarHeight = navbar ? navbar.offsetHeight : 0;
+
+
+        window.addEventListener('scroll', () => {
+            let currentSectionId = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                if (pageYOffset >= sectionTop - navbarHeight - 20) { 
+                    currentSectionId = section.getAttribute('id');
+                }
+            });
+
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                const linkHref = link.getAttribute('href');
+                if (linkHref && linkHref.substring(1) === currentSectionId) {
+                    link.classList.add('active');
+                }
+            });
+        });
+        
+        navLinks.forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href')?.substring(1);
+                if (!targetId) return;
+                const targetElement = document.getElementById(targetId);
+                if (targetElement) {
+                    const elementPosition = targetElement.getBoundingClientRect().top + window.pageYOffset;
+                    const offsetPosition = elementPosition - navbarHeight - 10; 
+        
+                    window.scrollTo({ top: offsetPosition, behavior: "smooth" });
+                }
+            });
+        });
+
+        
+        const geminiModal = document.getElementById('geminiModal');
+        const geminiModalTitle = document.getElementById('geminiModalTitle');
+        const geminiModalContent = document.getElementById('geminiModalContent');
+        const closeGeminiModalBtn = document.getElementById('closeGeminiModal');
+
+        function showGeminiModal(title) {
+            if(geminiModalTitle) geminiModalTitle.textContent = title;
+            if(geminiModalContent) geminiModalContent.innerHTML = '<div class="flex flex-col justify-center items-center h-40"><div class="animate-spin rounded-full h-12 w-12 border-b-2 border-t-2 border-[#FF9F1C]"></div><p class="ml-3 mt-4 text-gray-600 text-sm">A IA está a pensar... Aguarde um momento!</p></div>';
+            if(geminiModal) geminiModal.classList.remove('hidden');
+        }
+
+        function hideGeminiModal() {
+            if(geminiModal) geminiModal.classList.add('hidden');
+        }
+
+        if(closeGeminiModalBtn) closeGeminiModalBtn.addEventListener('click', hideGeminiModal);
+        if(geminiModal) geminiModal.addEventListener('click', function(event) {
+            if (event.target === geminiModal) { hideGeminiModal(); }
+        });
+
+        async function callGeminiAPI(promptText, isChat = false, conversationHistory = []) {
+            const apiKey = "AIzaSyDxcxVmGPBbg7mJ6_cmMDkHrDpbx3Lspik"; 
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+            
+            let contentsPayload;
+            if (isChat) {
+                contentsPayload = [...conversationHistory, { role: "user", parts: [{ text: promptText }] }];
+            } else {
+                contentsPayload = [{ role: "user", parts: [{ text: promptText }] }];
+            }
+            
+            const payload = { contents: contentsPayload };
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    console.error('Erro da API (dados):', errorData);
+                    throw new Error(`Erro ${response.status}: ${errorData?.error?.message || response.statusText}`);
+                }
+                const result = await response.json();
+                if (result.candidates && result.candidates.length > 0 &&
+                    result.candidates[0].content && result.candidates[0].content.parts &&
+                    result.candidates[0].content.parts.length > 0) {
+                    return result.candidates[0].content.parts[0].text;
+                } else {
+                    console.error('Resposta inesperada da API Gemini:', result);
+                    if (result.promptFeedback && result.promptFeedback.blockReason) {
+                        return `Não foi possível gerar a resposta devido a restrições de conteúdo (${result.promptFeedback.blockReason}). Por favor, tente uma abordagem diferente.`;
+                    }
+                    return 'Desculpe, não consegui obter uma resposta válida da IA. Tente novamente.';
+                }
+            } catch (error) {
+                console.error('Erro ao chamar a API Gemini:', error);
+                return `Ocorreu um erro ao comunicar com a IA: ${error.message}. Por favor, verifique a sua ligação ou tente mais tarde.`;
+            }
+        }
+
+        document.querySelectorAll('.gemini-explain-btn').forEach(button => {
+            button.addEventListener('click', async function() {
+                const concept = this.dataset.concept;
+                const prompt = `Explique o conceito de "${concept}" de forma muito simples, clara e concisa, como se fosse para um aluno do 8º ano do ensino fundamental que está a ter o primeiro contacto com o tema. Use analogias ou exemplos do dia a dia, se possível, para tornar o aprendizado mais fácil e divertido. Evite termos muito técnicos e foque na intuição. Formate a resposta com parágrafos curtos. No final, adicione: "Se ainda tiver dúvidas, fale com seu professor Kelvin!"`;
+                showGeminiModal(`✨ Explicando: ${concept} ✨`);
+                const explanation = await callGeminiAPI(prompt);
+                if(geminiModalContent) geminiModalContent.innerHTML = `<div class="prose prose-sm max-w-none">${explanation.replace(/\n\n/g, '</p><p>').replace(/\n/g, '<br>')}</div>`;
+            });
+        });
+
+        document.querySelectorAll('.gemini-problem-btn').forEach(button => {
+            button.addEventListener('click', async function() {
+                const topic = this.dataset.topic;
+                const prompt = `Crie um problema prático e interessante sobre "${topic}" para um aluno do 8º ano do ensino fundamental. O problema deve ter um contexto do cotidiano ou algo que chame a atenção dos jovens (ex: jogos, desportos, tecnologia, mistérios). Apresente o problema claramente. Depois do problema, se quiser, adicione uma secção "Dica ✨:" com uma pequena dica para ajudar a começar, sem dar a resposta final. No final, adicione: "Para corrigir ou tirar dúvidas, procure o professor Kelvin!"`;
+                showGeminiModal(`✨ Problema sobre: ${topic} ✨`);
+                const problem = await callGeminiAPI(prompt);
+                if(geminiModalContent) geminiModalContent.innerHTML = `<div class="prose prose-sm max-w-none">${problem.replace(/\n\n/g, '</p><p>').replace(/\n/g, '<br>')}</div>`;
+            });
+        });
+
+        
+        const openChatBtn = document.getElementById('openChatBtn');
+        const geminiChatModal = document.getElementById('geminiChatModal');
+        const closeChatModalBtn = document.getElementById('closeChatModal');
+        const chatMessagesContainer = document.getElementById('chatMessages');
+        const chatInput = document.getElementById('chatInput');
+        const sendChatBtn = document.getElementById('sendChatBtn');
+        const chatTypingIndicator = document.getElementById('chatTypingIndicator');
+
+        let chatConversationHistory = [
+            { role: "user", parts: [{text: "Você é um assistente de matemática amigável, super paciente e divertido, especializado em ajudar alunos do 8º ano a entenderem ângulos. Seu nome é Gênio dos Graus. Responda perguntas, explique conceitos de ângulos, gere atividades e problemas práticos sobre ângulos. Use uma linguagem informal e próxima do aluno. Ao final de explicações mais longas ou quando o aluno parecer precisar de mais ajuda, sempre sugira: 'Lembre-se, para dúvidas mais profundas ou para conferir suas respostas, o seu professor Kelvin Radimak é a melhor pessoa para ajudar! 😉'" }]},
+            { role: "model", parts: [{text: "Olá! Sou o Gênio dos Graus, seu novo parceiro para desvendar os mistérios dos ângulos! 😊 Em que posso te ajudar hoje? Pode perguntar sobre um tipo de ângulo, pedir uma explicação diferente, ou até mesmo um desafio para testar seus conhecimentos!"}]}
+        ];
+
+        function displayChatMessage(message, sender) {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('flex', 'mb-2');
+            
+            const bubbleDiv = document.createElement('div');
+            bubbleDiv.classList.add(sender === 'user' ? 'chat-bubble-user' : 'chat-bubble-model');
+            bubbleDiv.innerHTML = `<p class="whitespace-pre-wrap">${message.replace(/\n\n/g, '</p><p>').replace(/\n/g, '<br>')}</p>`; 
+            
+            if (sender === 'user') {
+                messageDiv.classList.add('justify-end');
+            }
+            messageDiv.appendChild(bubbleDiv);
+            if(chatMessagesContainer) {
+                chatMessagesContainer.appendChild(messageDiv);
+                chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
+            }
+        }
+        
+        
+        if(chatMessagesContainer && chatConversationHistory.length > 1 && chatConversationHistory[1].role === 'model') {
+             // Limpa apenas as mensagens dinâmicas, preservando a estrutura do modal
+            const dynamicMessages = chatMessagesContainer.querySelectorAll('.flex.mb-2');
+            dynamicMessages.forEach(msg => {
+                if (msg.querySelector('.chat-bubble-user') || msg.querySelector('.chat-bubble-model')) {
+                    // Verifica se não é a mensagem de boas-vindas hardcoded
+                    if (!msg.isEqualNode(chatMessagesContainer.children[0])) {
+                         msg.remove();
+                    }
+                }
+            });
+            // Se a mensagem de boas-vindas não estiver lá (ex: após um refresh onde o JS rodou de novo)
+            // E se o container de mensagens estiver vazio ou só tiver a mensagem de boas-vindas
+            if (!chatMessagesContainer.querySelector('.chat-bubble-model p')?.textContent.startsWith("Olá! Sou o Gênio dos Graus")) {
+                 const welcomeBubbleDiv = document.createElement('div');
+                welcomeBubbleDiv.classList.add('chat-bubble-model');
+                welcomeBubbleDiv.innerHTML = `<p>${chatConversationHistory[1].parts[0].text}</p>`;
+                const welcomeMessageDiv = document.createElement('div');
+                welcomeMessageDiv.classList.add('flex', 'mb-2');
+                welcomeMessageDiv.appendChild(welcomeBubbleDiv);
+                chatMessagesContainer.prepend(welcomeMessageDiv); // Adiciona no início
+            }
+        }
+
+
+        if(openChatBtn) openChatBtn.addEventListener('click', () => {
+            if(geminiChatModal) geminiChatModal.classList.remove('hidden');
+            if(chatInput) chatInput.focus();
+        });
+        if(closeChatModalBtn) closeChatModalBtn.addEventListener('click', () => {
+            if(geminiChatModal) geminiChatModal.classList.add('hidden');
+        });
+
+        async function handleChatSend() {
+            const userMessage = chatInput.value.trim();
+            if (!userMessage) return;
+
+            displayChatMessage(userMessage, 'user');
+            chatInput.value = '';
+            if(chatTypingIndicator) chatTypingIndicator.classList.remove('hidden');
+
+            
+            const currentTurnUserMessage = { role: "user", parts: [{ text: userMessage }] };
+            let tempHistoryForAPI = [...chatConversationHistory, currentTurnUserMessage];
+
+
+            const modelResponseText = await callGeminiAPI(userMessage, true, tempHistoryForAPI); 
+
+            
+            const modelResponseForHistory = { role: "model", parts: [{ text: modelResponseText }] };
+            chatConversationHistory = [...tempHistoryForAPI, modelResponseForHistory]; 
+
+            displayChatMessage(modelResponseText, 'model');
+            if(chatTypingIndicator) chatTypingIndicator.classList.add('hidden');
+        }
+
+        if(sendChatBtn) sendChatBtn.addEventListener('click', handleChatSend);
+        if(chatInput) chatInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                handleChatSend();
+            }
+        });
+
+    </script>
+</body>
+</html>
