@@ -1,407 +1,343 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Infográfico: Desvendando o Mundo dos Ângulos com IA e Chat</title>
+    <title>Matemática com Prof. Kelvin Radimak</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Poppins', sans-serif;
-            scroll-behavior: smooth;
+            background-color: #F9F9F9;
+            color: #333333;
         }
-        .chart-container {
-            position: relative;
-            width: 100%;
-            max-width: 400px; 
-            margin-left: auto;
-            margin-right: auto;
-            height: 280px; 
-            max-height: 350px;
-        }
-        @media (min-width: 768px) { /* md breakpoint */
-            .chart-container {
-                height: 300px;
-            }
-        }
-        .angle-diagram {
-            width: 120px;
-            height: 100px;
-            position: relative;
-            margin: 10px auto;
-        }
-        .angle-diagram .ray {
-            width: 70px;
-            height: 4px;
-            background-color: #272932; /* Texto Escuro */
-            position: absolute;
-            bottom: 50%;
-            left: 50%;
-            transform-origin: 0% 50%;
-        }
-        .angle-diagram .vertex {
-            width: 10px;
-            height: 10px;
-            background-color: #FF9F1C; /* Laranja Vibrante */
-            border-radius: 50%;
-            position: absolute;
-            bottom: calc(50% - 5px);
-            left: calc(50% - 5px);
-            z-index: 1;
-        }
-        .angle-diagram .arc {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            position: absolute;
-            bottom: calc(50% - 20px);
-            left: calc(50% - 20px);
-            clip-path: polygon(50% 50%, 100% 50%, 100% 0, 0 0, 0 100%, 50% 100%);
-        }
-        .sticky-nav {
+        .sticky-header {
             position: sticky;
             top: 0;
             z-index: 50;
             background-color: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(8px);
-            padding: 0.5rem 0;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
         .nav-link.active {
             font-weight: 700;
-            color: #FF9F1C;
-            border-bottom: 2px solid #FF9F1C;
+            color: #FFBE0B; /* Destaque/Ação */
+            border-bottom: 2px solid #FFBE0B;
         }
-        .parallel-lines-diagram {
+        .main-section { /* Classe para as secções principais */
+            padding-top: 70px; 
+            margin-top: -60px; 
+        }
+        .content-section { /* Classe para a secção de conteúdo do assunto */
+            padding-top: 80px; /* Um pouco mais de padding no topo */
+            min-height: 100vh;
+        }
+        .card {
+            background-color: #FFFFFF;
+            border-radius: 0.75rem; 
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); 
+            padding: 1.5rem; 
+            margin-bottom: 1.5rem; 
+        }
+        .grade-accordion summary {
+            background-color: #3A86FF; 
+            color: white;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            list-style: none; 
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .grade-accordion summary::-webkit-details-marker { display: none; } 
+        .grade-accordion summary::after { content: '▼'; font-size: 0.8em; }
+        .grade-accordion[open] summary::after { content: '▲'; }
+        .grade-accordion div { padding: 1rem; border: 1px solid #83C5BE; border-top: none; border-radius: 0 0 0.5rem 0.5rem; background-color: #FFFFFF;}
+        
+        .subject-button {
+            display: block;
             width: 100%;
-            max-width: 350px;
-            height: 200px;
-            position: relative;
-            margin: 20px auto;
-            border: 1px solid #E0E0E0;
-            padding: 10px;
+            text-align: left;
+            padding: 0.5rem 0.75rem; 
+            margin-bottom: 0.25rem; 
+            background-color: #E0E7FF; 
+            color: #333333;
+            border-radius: 0.375rem; 
+            transition: background-color 0.2s ease-in-out;
+            font-size: 0.9rem;
         }
-        .parallel-lines-diagram .line {
-            width: 100%;
-            height: 3px;
-            background-color: #2EC4B6;
-            position: absolute;
+        .subject-button:hover {
+            background-color: #C7D2FE; 
         }
-        .parallel-lines-diagram .line1 { top: 30%; left: 0; }
-        .parallel-lines-diagram .line2 { top: 70%; left: 0; }
-        .parallel-lines-diagram .transversal {
-            width: 3px;
-            height: 110%;
-            background-color: #FF9F1C;
-            position: absolute;
-            top: -5%;
-            left: 50%;
-            transform: translateX(-50%) rotate(30deg);
-        }
-        .parallel-lines-diagram .angle-label {
-            position: absolute;
-            font-size: 0.75rem;
-            font-weight: bold;
-            color: #272932;
-            background-color: rgba(255,255,255,0.7);
-            padding: 1px 3px;
-            border-radius: 3px;
-        }
-        .gemini-btn {
-            margin-left: 0.5rem;
-            font-size: 0.75rem; 
-            background-color: #FFBF69; 
-            color: #272932; 
-            padding: 2px 8px; 
-            border-radius: 9999px; 
-            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-            transition: all 0.15s ease-in-out;
-        }
-        .gemini-btn:hover {
-            background-color: #FF9F1C; 
-            transform: scale(1.05);
-        }
+
         .chat-bubble-user {
-            background-color: #FFBF69; /* Amarelo Solar */
-            color: #272932;
-            border-radius: 0.75rem; /* rounded-xl */
-            border-bottom-right-radius: 0.125rem; /* rounded-br-sm */
-            padding: 0.5rem 0.75rem; /* p-2 px-3 */
+            background-color: #FFBE0B; 
+            color: #333333;
+            border-radius: 0.75rem; 
+            border-bottom-right-radius: 0.125rem; 
+            padding: 0.5rem 0.75rem;
             max-width: 80%;
             align-self: flex-end;
         }
         .chat-bubble-model {
-            background-color: #E0E7FF; /* Azul Lavanda Suave (novo) */
-            color: #272932;
-            border-radius: 0.75rem; /* rounded-xl */
-            border-bottom-left-radius: 0.125rem; /* rounded-bl-sm */
-            padding: 0.5rem 0.75rem; /* p-2 px-3 */
+            background-color: #E0E7FF; 
+            color: #333333;
+            border-radius: 0.75rem; 
+            border-bottom-left-radius: 0.125rem; 
+            padding: 0.5rem 0.75rem;
             max-width: 80%;
             align-self: flex-start;
         }
+        .btn-primary {
+            background-color: #3A86FF;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-weight: 600;
+            transition: background-color 0.2s;
+        }
+        .btn-primary:hover {
+            background-color: #2A67D5;
+        }
+        .btn-secondary {
+            background-color: #FFBE0B;
+            color: #333333;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-weight: 600;
+            transition: background-color 0.2s;
+        }
+        .btn-secondary:hover {
+            background-color: #FCAE00;
+        }
+        /* Estilos para Resumos e Atividades */
+        .subject-content-title {
+            font-size: 1.25rem; /* text-xl */
+            font-weight: 600; /* font-semibold */
+            margin-bottom: 0.75rem; /* mb-3 */
+            color: #83C5BE; /* Azul Secundário/Verde Água */
+        }
+        .subject-content-text, .subject-content-list li {
+            margin-bottom: 1rem; /* mb-4 */
+            line-height: 1.6;
+        }
+        .subject-content-list {
+            list-style-type: disc;
+            list-style-position: inside;
+            margin-left: 1rem; /* ml-4 */
+        }
+        .subject-activity-title {
+            font-size: 1.125rem; /* text-lg */
+            font-weight: 600; /* font-semibold */
+            margin-top: 1.5rem; /* mt-6 */
+            margin-bottom: 0.75rem; /* mb-3 */
+            color: #FFBE0B; /* Destaque/Ação */
+        }
+        .subject-activity-list {
+            list-style-type: decimal;
+            list-style-position: inside;
+            space-y: 0.5rem; /* space-y-2 */
+        }
+        .subject-activity-list li {
+            margin-bottom: 0.5rem; /* Adiciona espaço entre os itens da lista */
+        }
+        .formula {
+            background-color: #eef2ff; /* indigo-50 */
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.375rem; /* rounded-md */
+            font-family: 'Courier New', Courier, monospace;
+            margin: 0.5rem 0;
+            display: inline-block;
+            word-break: break-all;
+        }
+        .example-image {
+            max-width: 100%; /* Garante responsividade */
+            height: auto;
+            margin: 1rem auto;
+            border-radius: 0.5rem; /* rounded-lg */
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* shadow-md */
+            display: block;
+        }
+        .caption {
+            font-size: 0.875rem; /* text-sm */
+            color: #666666; /* text-gray-600 */
+            text-align: center;
+            margin-top: -0.5rem; /* Ajuste para ficar mais próximo da imagem */
+            margin-bottom: 1rem;
+        }
     </style>
 </head>
-<body class="bg-[#F7F7F7] text-[#272932]">
+<body>
 
-    <nav id="navbar" class="sticky-nav">
-        <div class="container mx-auto px-4">
-            <ul class="flex justify-center space-x-3 md:space-x-6 py-2 overflow-x-auto whitespace-nowrap text-sm">
-                <li><a href="#definicao" class="nav-link px-2 py-2 text-gray-600 hover:text-[#FF9F1C]">O que é?</a></li>
-                <li><a href="#medindo" class="nav-link px-2 py-2 text-gray-600 hover:text-[#FF9F1C]">Medindo</a></li>
-                <li><a href="#tipos" class="nav-link px-2 py-2 text-gray-600 hover:text-[#FF9F1C]">Tipos</a></li>
-                <li><a href="#relacoes" class="nav-link px-2 py-2 text-gray-600 hover:text-[#FF9F1C]">Relações</a></li>
-                <li><a href="#pares" class="nav-link px-2 py-2 text-gray-600 hover:text-[#FF9F1C]">Pares</a></li>
-                <li><a href="#paralelas" class="nav-link px-2 py-2 text-gray-600 hover:text-[#FF9F1C]">Retas Paralelas</a></li>
-            </ul>
-        </div>
+    <header id="header" class="sticky-header">
+        <nav class="container mx-auto px-4 py-3 md:py-4 flex flex-wrap justify-between items-center">
+            <a href="#inicio" class="text-xl md:text-2xl font-bold text-[#3A86FF] hover:text-[#FFBE0B] transition-colors">
+                Prof. Kelvin Radimak
+            </a>
+            <button id="mobileMenuBtn" class="md:hidden p-2 rounded hover:bg-gray-200">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+                </svg>
+            </button>
+            <div id="navLinks" class="w-full md:w-auto hidden md:flex flex-col md:flex-row md:space-x-5 mt-3 md:mt-0 text-sm md:text-base">
+                <a href="#inicio" class="nav-link block py-2 px-3 text-gray-700 hover:text-[#FFBE0B]">Início</a>
+                <a href="#sobre-mim" class="nav-link block py-2 px-3 text-gray-700 hover:text-[#FFBE0B]">Sobre Mim</a>
+                <a href="#materiais" class="nav-link block py-2 px-3 text-gray-700 hover:text-[#FFBE0B]">Materiais</a>
+                <a href="#assuntos" class="nav-link block py-2 px-3 text-gray-700 hover:text-[#FFBE0B]">Assuntos</a>
+                <a href="#chat-ia" class="nav-link block py-2 px-3 text-gray-700 hover:text-[#FFBE0B]">Chat IA</a>
+            </div>
         </nav>
-
-    <header class="bg-gradient-to-r from-[#2EC4B6] to-[#90BE6D] text-white py-10 md:py-16 text-center">
-        <div class="container mx-auto px-4">
-            <h1 class="text-3xl md:text-4xl font-bold mb-3">Desvendando o Mundo dos Ângulos!</h1>
-            <p class="text-md md:text-lg max-w-2xl mx-auto">Um guia divertido para entender tudo sobre ângulos, preparado para o 8º ano, agora com ajuda da IA!</p>
-        </div>
     </header>
 
-    <main class="container mx-auto p-4 md:p-6">
+    <div id="mainContentContainer">
+        <main class="container mx-auto p-4 md:p-6">
+            <section id="inicio" class="main-section min-h-screen flex flex-col justify-center items-center text-center">
+                 <div class="card max-w-2xl">
+                    <h1 class="text-4xl md:text-5xl font-bold text-[#3A86FF] mb-6">Bem-vindo(a) ao Mundo da Matemática!</h1>
+                    <p class="text-lg md:text-xl text-gray-700 mb-8">Olá! Sou o Professor Kelvin Radimak. Este espaço foi criado para ajudar você a explorar, aprender e se divertir com a matemática.</p>
+                    <a href="#assuntos" class="bg-[#FFBE0B] text-[#333333] font-semibold py-3 px-8 rounded-lg text-lg hover:bg-opacity-80 transition-colors">
+                        Comece a Explorar os Assuntos!
+                    </a>
+                </div>
+            </section>
 
-        <section id="definicao" class="mb-10 md:mb-12 scroll-mt-20">
-            <h2 class="text-2xl md:text-3xl font-semibold text-[#2EC4B6] mb-4 text-center">O que é um Ângulo? 🤔</h2>
-            <div class="bg-[#FFFFFF] rounded-lg shadow-xl p-6 max-w-2xl mx-auto text-center">
-                <p class="text-lg mb-1">Imagine duas linhas retas que saem do mesmo pontinho. A "abertura" entre essas linhas é o que chamamos de <strong>ângulo</strong>!
-                    <button class="gemini-btn gemini-explain-btn" data-concept="O que é um ângulo, seus lados e vértice">Explique Melhor ✨</button>
-                </p>
-                <div class="angle-diagram mx-auto my-4 border border-dashed border-[#FFBF69] p-2 rounded">
-                    <div class="vertex"></div>
-                    <div class="ray" style="transform: rotate(0deg);"></div>
-                    <div class="ray" style="transform: rotate(-45deg);"></div>
-                    <div class="arc" style="border-top: 3px solid #FF9F1C; border-right: 3px solid #FF9F1C; transform: rotate(-42deg) scale(0.8) translate(7px, -7px);"></div>
-                    <span class="absolute bottom-[52%] left-[calc(50%+10px)] text-xs text-[#FF9F1C] font-bold">Ângulo</span>
-                </div>
-                <p class="text-md">As duas linhas são os <strong>lados</strong> do ângulo, e o pontinho de onde elas saem é o <strong>vértice</strong>.</p>
-            </div>
-        </section>
-
-        <section id="medindo" class="mb-10 md:mb-12 scroll-mt-20">
-            <h2 class="text-2xl md:text-3xl font-semibold text-[#2EC4B6] mb-4 text-center">Como Medimos Ângulos? 📏</h2>
-            <div class="bg-[#FFFFFF] rounded-lg shadow-xl p-6 max-w-2xl mx-auto">
-                <p class="text-lg mb-3">Medimos ângulos usando uma unidade chamada <strong>grau</strong>, que tem o símbolo <strong>°</strong>.</p>
-                <div class="text-center my-4">
-                    <span class="text-6xl text-[#FF9F1C]">📐</span>
-                    <p class="text-md mt-2">Usamos um instrumento chamado <strong>transferidor</strong> para medir ou desenhar ângulos.</p>
-                </div>
-                <p class="text-md mb-2">Uma volta completa, como um círculo, tem <strong>360°</strong>. Pense numa pizza inteira!</p>
-                <p class="text-md">Para medidas ainda menores, usamos os <strong>minutos (')</strong> e os <strong>segundos ('')</strong>:</p>
-                <ul class="list-disc list-inside ml-4 text-md space-y-1">
-                    <li>1 grau (1°) = 60 minutos (60')</li>
-                    <li>1 minuto (1') = 60 segundos (60'')</li>
-                </ul>
-            </div>
-        </section>
-
-        <section id="tipos" class="mb-10 md:mb-12 scroll-mt-20">
-            <h2 class="text-2xl md:text-3xl font-semibold text-[#2EC4B6] mb-6 text-center">Quais são os Tipos de Ângulos? 🧐</h2>
-            <p class="text-center text-gray-700 mb-6 max-w-2xl mx-auto">Dependendo da sua "abertura" (medida), os ângulos recebem nomes diferentes. Vamos conhecer os principais:</p>
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                
-                <div class="bg-[#FFFFFF] rounded-lg shadow-xl p-5 text-center hover:shadow-2xl transition-shadow">
-                    <h3 class="text-xl font-bold text-[#FF9F1C] mb-2">Ângulo Agudo</h3>
-                    <div class="angle-diagram mx-auto my-2 h-20">
-                        <div class="vertex"></div>
-                        <div class="ray" style="transform: rotate(0deg);"></div>
-                        <div class="ray" style="transform: rotate(-30deg);"></div>
-                    </div>
-                    <p>Menor que 90°.<br/>(0° &lt; agudo &lt; 90°)</p>
-                    <p class="text-xs text-gray-500 mt-1">Ex: 30°, 45°, 89°</p>
-                </div>
-
-                <div class="bg-[#FFFFFF] rounded-lg shadow-xl p-5 text-center hover:shadow-2xl transition-shadow">
-                    <h3 class="text-xl font-bold text-[#FF9F1C] mb-2">Ângulo Reto</h3>
-                    <div class="angle-diagram mx-auto my-2 h-20">
-                        <div class="vertex"></div>
-                        <div class="ray" style="transform: rotate(0deg);"></div>
-                        <div class="ray" style="transform: rotate(-90deg);"></div>
-                        <div class="w-4 h-4 border-l-2 border-b-2 border-[#272932] absolute bottom-[calc(50%)] left-[calc(50%)]"></div>
-                    </div>
-                    <p>Exatamente 90°.<br/>(Forma um "L")</p>
-                    <p class="text-2xl font-bold text-[#2EC4B6] mt-1">90°</p>
-                </div>
-
-                <div class="bg-[#FFFFFF] rounded-lg shadow-xl p-5 text-center hover:shadow-2xl transition-shadow">
-                    <h3 class="text-xl font-bold text-[#FF9F1C] mb-2">Ângulo Obtuso</h3>
-                     <div class="angle-diagram mx-auto my-2 h-20">
-                        <div class="vertex"></div>
-                        <div class="ray" style="transform: rotate(0deg);"></div>
-                        <div class="ray" style="transform: rotate(-120deg);"></div>
-                    </div>
-                    <p>Maior que 90° e menor que 180°.<br/>(90° &lt; obtuso &lt; 180°)</p>
-                    <p class="text-xs text-gray-500 mt-1">Ex: 100°, 150°, 179°</p>
-                </div>
-
-                <div class="bg-[#FFFFFF] rounded-lg shadow-xl p-5 text-center hover:shadow-2xl transition-shadow sm:col-span-1 lg:col-span-1">
-                    <h3 class="text-xl font-bold text-[#FF9F1C] mb-2">Ângulo Raso</h3>
-                    <div class="angle-diagram mx-auto my-2 h-20">
-                        <div class="vertex"></div>
-                        <div class="ray" style="transform: rotate(0deg);"></div>
-                        <div class="ray" style="transform: rotate(-180deg);"></div>
-                    </div>
-                    <p>Exatamente 180°.<br/>(Uma linha reta)</p>
-                    <p class="text-2xl font-bold text-[#2EC4B6] mt-1">180°</p>
-                </div>
-                 <div class="bg-[#FFFFFF] rounded-lg shadow-xl p-5 text-center hover:shadow-2xl transition-shadow sm:col-span-2 lg:col-span-2">
-                    <h3 class="text-xl font-bold text-[#FF9F1C] mb-2">Ângulo de Uma Volta (ou Pleno)</h3>
-                    <div class="relative w-24 h-24 mx-auto my-2 flex items-center justify-center">
-                        <div class="w-2 h-2 bg-[#FF9F1C] rounded-full absolute z-10"></div>
-                        <div class="w-12 h-1 bg-[#272932] absolute left-1/2 top-1/2 transform -translate-y-1/2"></div>
-                        <div class="w-20 h-20 border-4 border-dashed border-[#2EC4B6] rounded-full animate-spin-slow" style="animation-duration: 5s;"></div>
-                         <style> @keyframes spin-slow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } } </style>
-                    </div>
-                    <p>Exatamente 360°.<br/>(Uma volta completa)</p>
-                    <p class="text-2xl font-bold text-[#2EC4B6] mt-1">360°</p>
-                </div>
-            </div>
-        </section>
-
-        <section id="relacoes" class="mb-10 md:mb-12 scroll-mt-20">
-            <h2 class="text-2xl md:text-3xl font-semibold text-[#2EC4B6] mb-6 text-center">Relações Entre Ângulos 🤝</h2>
-            <p class="text-center text-gray-700 mb-6 max-w-2xl mx-auto">Os ângulos podem se relacionar de formas interessantes. Vamos ver algumas delas:</p>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="bg-[#FFFFFF] rounded-lg shadow-xl p-5">
-                    <h3 class="text-xl font-bold text-[#FF9F1C] mb-2">Ângulos Consecutivos</h3>
-                    <p>São ângulos que têm o mesmo vértice e um lado em comum. São "vizinhos" que compartilham uma parede!</p>
-                </div>
-                <div class="bg-[#FFFFFF] rounded-lg shadow-xl p-5">
-                    <h3 class="text-xl font-bold text-[#FF9F1C] mb-2">Ângulos Adjacentes</h3>
-                    <p>São ângulos consecutivos que NÃO têm pontos internos em comum. São vizinhos que compartilham uma parede, mas cada um fica no seu espaço.</p>
-                </div>
-                <div class="bg-[#FFFFFF] rounded-lg shadow-xl p-5 md:col-span-2">
-                    <h3 class="text-xl font-bold text-[#FF9F1C] mb-2 text-center">Ângulos Opostos Pelo Vértice (O.P.V.)</h3>
-                    <p class="text-center mb-1">Quando duas retas se cruzam, elas formam quatro ângulos. Os ângulos que ficam "de frente" um para o outro (opostos pelo vértice) são IGUAIS!
-                        <button class="gemini-btn gemini-explain-btn" data-concept="Ângulos Opostos Pelo Vértice (O.P.V.)">Explique Melhor ✨</button>
+            <section id="sobre-mim" class="main-section">
+                <h2 class="text-3xl md:text-4xl font-semibold text-[#3A86FF] mb-8 text-center">Sobre Mim</h2>
+                <div class="card max-w-3xl mx-auto">
+                    <p class="text-lg text-gray-700 leading-relaxed">
+                        Olá, sou o Kelvin Radimak, seu professor de matemática! Tenho 24 anos e sou apaixonado por números, tecnologia e por ajudar os alunos a descobrirem como a matemática pode ser incrível. 
+                        Atualmente, sou estudante de graduação em Licenciatura em Matemática e também leciono matemática para o ensino fundamental (6º ao 9º ano) na escola CONCENAL - Centro Educacional Contemporâneo.
+                        Criei este site para ser um apoio extra nos seus estudos, com materiais, explicações e um espaço para você tirar dúvidas. Espero que aproveite!
                     </p>
-                    <div class="relative w-40 h-32 mx-auto border border-dashed border-gray-300 p-1 mt-2">
-                        <div class="absolute w-full h-1 bg-[#272932] top-1/2 left-0 transform -translate-y-1/2 rotate-[-20deg]"></div>
-                        <div class="absolute w-full h-1 bg-[#272932] top-1/2 left-0 transform -translate-y-1/2 rotate-[20deg]"></div>
-                        <span class="absolute top-[35%] left-[30%] text-sm text-[#FF9F1C] font-bold">α</span>
-                        <span class="absolute bottom-[35%] right-[30%] text-sm text-[#FF9F1C] font-bold">α</span>
-                        <span class="absolute top-[35%] right-[30%] text-sm text-[#2EC4B6] font-bold">β</span>
-                        <span class="absolute bottom-[35%] left-[30%] text-sm text-[#2EC4B6] font-bold">β</span>
-                    </div>
-                     <p class="text-center mt-2 text-sm">Na figura, os ângulos α são iguais, e os ângulos β também são iguais entre si.</p>
-                </div>
-                 <div class="bg-[#FFFFFF] rounded-lg shadow-xl p-5 md:col-span-2">
-                    <h3 class="text-xl font-bold text-[#FF9F1C] mb-2 text-center">Bissetriz de um Ângulo</h3>
-                    <p class="text-center mb-1">A bissetriz é uma semirreta que sai do vértice do ângulo e o divide em DOIS ângulos exatamente IGUAIS. É como cortar uma fatia de pizza perfeitamente ao meio!
-                        <button class="gemini-btn gemini-explain-btn" data-concept="Bissetriz de um Ângulo">Explique Melhor ✨</button>
+                    <p class="text-lg text-gray-700 leading-relaxed mt-4">
+                        Fora da sala de aula, gosto muito de tecnologia e estou sempre a procurar novas formas de usar ferramentas digitais para facilitar o aprendizado.
                     </p>
-                     <div class="angle-diagram mx-auto my-4 border border-dashed border-gray-300 p-1">
-                        <div class="vertex"></div>
-                        <div class="ray" style="transform: rotate(0deg);"></div>
-                        <div class="ray" style="transform: rotate(-60deg);"></div>
-                        <div class="ray" style="transform: rotate(-30deg); background-color: #FF9F1C; opacity:0.7; height:3px;"></div>
-                        <span class="absolute bottom-[55%] left-[calc(50%+20px)] text-xs text-[#2EC4B6] font-bold" style="transform: rotate(-15deg);">x</span>
-                        <span class="absolute bottom-[40%] left-[calc(50%+20px)] text-xs text-[#2EC4B6] font-bold" style="transform: rotate(-45deg);">x</span>
-                    </div>
-                    <p class="text-center mt-2 text-sm">A linha laranja é a bissetriz, dividindo o ângulo em duas partes 'x' iguais.</p>
                 </div>
-            </div>
-        </section>
+            </section>
 
-        <section id="pares" class="mb-10 md:mb-12 scroll-mt-20">
-            <h2 class="text-2xl md:text-3xl font-semibold text-[#2EC4B6] mb-6 text-center">Pares Especiais de Ângulos ➕</h2>
-            <p class="text-center text-gray-700 mb-2 max-w-2xl mx-auto">Alguns pares de ângulos têm somas especiais. Olha só:
-                 <button class="gemini-btn gemini-problem-btn" data-topic="Ângulos Complementares e Suplementares">Crie um Problema Prático ✨</button>
-            </p>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-4">
-                <div class="bg-[#FFFFFF] rounded-lg shadow-xl p-5">
-                    <h3 class="text-xl font-bold text-[#FF9F1C] mb-3 text-center">Ângulos Complementares</h3>
-                    <p class="text-center mb-3">São dois ângulos que, juntos, somam <strong>90°</strong> (formam um ângulo reto).</p>
-                    <div class="chart-container h-64">
-                        <canvas id="complementaryAnglesChart"></canvas>
+            <section id="materiais" class="main-section">
+                 <h2 class="text-3xl md:text-4xl font-semibold text-[#3A86FF] mb-8 text-center">Materiais Didáticos</h2>
+                <div class="card max-w-3xl mx-auto">
+                    <p class="text-lg text-gray-700 mb-4">Aqui você encontrará listas de exercícios, resumos, vídeos recomendados e outros recursos para complementar os seus estudos.</p>
+                    <div class="space-y-4">
+                        <div class="p-4 border border-[#83C5BE] rounded-lg">
+                            <h3 class="text-xl font-semibold text-[#3A86FF] mb-2">Listas de Exercícios (Exemplo)</h3>
+                            <ul class="list-disc list-inside text-gray-700">
+                                <li><a href="#" class="hover:text-[#FFBE0B] underline">Lista 1: Operações com Frações (6º Ano)</a></li>
+                                <li><a href="#" class="hover:text-[#FFBE0B] underline">Lista 2: Equações de 1º Grau (7º Ano)</a></li>
+                            </ul>
+                        </div>
+                        <div class="p-4 border border-[#83C5BE] rounded-lg">
+                            <h3 class="text-xl font-semibold text-[#3A86FF] mb-2">Vídeos Recomendados (Exemplo)</h3>
+                            <p class="text-gray-700">Em breve...</p>
+                        </div>
                     </div>
-                    <p class="text-center text-sm mt-2">Exemplo: Um ângulo de 30° e um de 60° são complementares (30° + 60° = 90°).</p>
                 </div>
-                <div class="bg-[#FFFFFF] rounded-lg shadow-xl p-5">
-                    <h3 class="text-xl font-bold text-[#FF9F1C] mb-3 text-center">Ângulos Suplementares</h3>
-                    <p class="text-center mb-3">São dois ângulos que, juntos, somam <strong>180°</strong> (formam um ângulo raso).</p>
-                    <div class="chart-container h-64">
-                        <canvas id="supplementaryAnglesChart"></canvas>
-                    </div>
-                    <p class="text-center text-sm mt-2">Exemplo: Um ângulo de 110° e um de 70° são suplementares (110° + 70° = 180°).</p>
-                </div>
-            </div>
-        </section>
+            </section>
 
-        <section id="paralelas" class="scroll-mt-20">
-            <h2 class="text-2xl md:text-3xl font-semibold text-[#2EC4B6] mb-6 text-center">Ângulos e Retas Paralelas Cortadas por uma Transversal 🚧</h2>
-            <p class="text-center text-gray-700 mb-2 max-w-2xl mx-auto">Quando duas retas paralelas (que nunca se cruzam) são cortadas por uma terceira reta (chamada transversal), formam-se 8 ângulos com relações bem legais entre si!
-                <button class="gemini-btn gemini-explain-btn" data-concept="Relações entre ângulos formados por retas paralelas e uma transversal">Explique Melhor ✨</button>
-            </p>
-            <div class="bg-[#FFFFFF] rounded-lg shadow-xl p-5 mt-4">
-                <h3 class="text-xl font-bold text-[#FF9F1C] mb-3 text-center">O Desenho da Situação</h3>
-                <div class="parallel-lines-diagram">
-                    <div class="line line1"></div>
-                    <div class="line line2"></div>
-                    <div class="transversal"></div>
-                    <span class="angle-label" style="top: 20%; left: 38%;">1</span>
-                    <span class="angle-label" style="top: 20%; left: 60%;">2</span>
-                    <span class="angle-label" style="top: 40%; left: 38%;">4</span>
-                    <span class="angle-label" style="top: 40%; left: 60%;">3</span>
-                    <span class="angle-label" style="top: 60%; left: 38%;">5</span>
-                    <span class="angle-label" style="top: 60%; left: 60%;">6</span>
-                    <span class="angle-label" style="top: 80%; left: 38%;">8</span>
-                    <span class="angle-label" style="top: 80%; left: 60%;">7</span>
+            <section id="assuntos" class="main-section">
+                <h2 class="text-3xl md:text-4xl font-semibold text-[#3A86FF] mb-8 text-center">Assuntos da Matemática (6º ao 9º Ano)</h2>
+                <div class="max-w-3xl mx-auto space-y-3">
+                    <details class="grade-accordion">
+                        <summary>6º Ano</summary>
+                        <div class="space-y-2">
+                            <button class="subject-button" data-subject-id="6-naturais" data-subject-name="Números Naturais e Operações">Números Naturais e Operações</button>
+                            <button class="subject-button" data-subject-id="6-mmc-mdc" data-subject-name="Múltiplos e Divisores (MMC e MDC)">Múltiplos e Divisores (MMC e MDC)</button>
+                            <button class="subject-button" data-subject-id="6-fracoes" data-subject-name="Frações: Conceitos e Operações">Frações: Conceitos e Operações</button>
+                            <button class="subject-button" data-subject-id="6-decimais" data-subject-name="Números Decimais: Conceitos e Operações">Números Decimais: Conceitos e Operações</button>
+                            <button class="subject-button" data-subject-id="6-geometria" data-subject-name="Geometria Plana: Figuras, Perímetro e Área (básico)">Geometria Plana: Figuras, Perímetro e Área (básico)</button>
+                            <button class="subject-button" data-subject-id="6-medidas" data-subject-name="Medidas de Comprimento, Massa, Capacidade e Tempo">Medidas de Comprimento, Massa, Capacidade e Tempo</button>
+                        </div>
+                    </details>
+                    <details class="grade-accordion">
+                        <summary>7º Ano</summary>
+                        <div class="space-y-2">
+                            <button class="subject-button" data-subject-id="7-inteiros" data-subject-name="Números Inteiros: Conceitos e Operações">Números Inteiros: Conceitos e Operações</button>
+                            <button class="subject-button" data-subject-id="7-racionais" data-subject-name="Números Racionais: Conceitos e Operações">Números Racionais: Conceitos e Operações</button>
+                            <button class="subject-button" data-subject-id="7-equacoes1" data-subject-name="Equações de 1º Grau">Equações de 1º Grau</button>
+                            <button class="subject-button" data-subject-id="7-inequacoes1" data-subject-name="Inequações de 1º Grau">Inequações de 1º Grau</button>
+                            <button class="subject-button" data-subject-id="7-razao-proporcao" data-subject-name="Razão, Proporção e Regra de Três Simples">Razão, Proporção e Regra de Três Simples</button>
+                            <button class="subject-button" data-subject-id="7-porcentagem" data-subject-name="Porcentagem e Juros Simples">Porcentagem e Juros Simples</button>
+                            <button class="subject-button" data-subject-id="7-angulos" data-subject-name="Ângulos e suas classificações">Ângulos e suas classificações</button>
+                            <button class="subject-button" data-subject-id="7-poligonos" data-subject-name="Triângulos e Polígonos">Triângulos e Polígonos</button>
+                        </div>
+                    </details>
+                    <details class="grade-accordion">
+                        <summary>8º Ano</summary>
+                        <div class="space-y-2">
+                            <button class="subject-button" data-subject-id="8-reais" data-subject-name="Números Reais">Números Reais</button>
+                            <button class="subject-button" data-subject-id="8-pot-rad" data-subject-name="Potenciação e Radiciação (com Reais)">Potenciação e Radiciação (com Reais)</button>
+                            <button class="subject-button" data-subject-id="8-calculo-alg" data-subject-name="Cálculo Algébrico: Monômios, Polinômios">Cálculo Algébrico: Monômios, Polinômios</button>
+                            <button class="subject-button" data-subject-id="8-prod-fat" data-subject-name="Produtos Notáveis e Fatoração">Produtos Notáveis e Fatoração</button>
+                            <button class="subject-button" data-subject-id="8-sistemas-eq1" data-subject-name="Sistemas de Equações de 1º Grau com Duas Incógnitas">Sistemas de Equações de 1º Grau com Duas Incógnitas</button>
+                            <button class="subject-button" data-subject-id="8-pitagoras" data-subject-name="Teorema de Pitágoras">Teorema de Pitágoras</button>
+                            <button class="subject-button" data-subject-id="8-areas" data-subject-name="Áreas de Figuras Planas (aprofundamento)">Áreas de Figuras Planas (aprofundamento)</button>
+                            <button class="subject-button" data-subject-id="8-circunferencia" data-subject-name="Circunferência e Círculo (comprimento e área)">Circunferência e Círculo (comprimento e área)</button>
+                            <button class="subject-button" data-subject-id="8-estatistica" data-subject-name="Noções de Estatística e Probabilidade">Noções de Estatística e Probabilidade</button>
+                        </div>
+                    </details>
+                    <details class="grade-accordion">
+                        <summary>9º Ano</summary>
+                        <div class="space-y-2">
+                            <button class="subject-button" data-subject-id="9-pot-rad-rev" data-subject-name="Potenciação e Radiciação (revisão e propriedades)">Potenciação e Radiciação (revisão e propriedades)</button>
+                            <button class="subject-button" data-subject-id="9-equacoes2" data-subject-name="Equações de 2º Grau Completas e Incompletas">Equações de 2º Grau Completas e Incompletas</button>
+                            <button class="subject-button" data-subject-id="9-funcoes" data-subject-name="Funções: Noções, Gráficos (afim e quadrática)">Funções: Noções, Gráficos (afim e quadrática)</button>
+                            <button class="subject-button" data-subject-id="9-semelhanca-tales" data-subject-name="Semelhança de Triângulos e Teorema de Tales">Semelhança de Triângulos e Teorema de Tales</button>
+                            <button class="subject-button" data-subject-id="9-trigonometria" data-subject-name="Trigonometria no Triângulo Retângulo (Seno, Cosseno, Tangente)">Trigonometria no Triângulo Retângulo (Seno, Cosseno, Tangente)</button>
+                            <button class="subject-button" data-subject-id="9-rel-metricas" data-subject-name="Relações Métricas no Triângulo Retângulo">Relações Métricas no Triângulo Retângulo</button>
+                            <button class="subject-button" data-subject-id="9-volumes" data-subject-name="Volume de Sólidos Geométricos (cubo, paralelepípedo, cilindro)">Volume de Sólidos Geométricos (cubo, paralelepípedo, cilindro)</button>
+                            <button class="subject-button" data-subject-id="9-juros-comp" data-subject-name="Juros Compostos (noções)">Juros Compostos (noções)</button>
+                        </div>
+                    </details>
                 </div>
-                <p class="text-center text-sm mt-3 mb-5">As linhas azuis são paralelas (r // s), e a laranja é a transversal (t).</p>
-                
-                <h3 class="text-lg font-semibold text-[#272932] mb-3">Principais Relações (e são muitas!):</h3>
-                <div class="overflow-x-auto">
-                    <table class="min-w-full text-sm divide-y divide-gray-200">
-                        <thead class="bg-gray-100">
-                            <tr>
-                                <th class="px-4 py-2 text-left font-semibold text-[#272932]">Tipo de Par</th>
-                                <th class="px-4 py-2 text-left font-semibold text-[#272932]">Exemplos na Figura</th>
-                                <th class="px-4 py-2 text-left font-semibold text-[#272932]">Propriedade</th>
-                            </tr>
-                        </thead>
-                        <tbody class="bg-white divide-y divide-gray-200">
-                            <tr> <td class="px-4 py-2">Correspondentes</td> <td class="px-4 py-2">1 e 5; 2 e 6; 4 e 8; 3 e 7</td> <td class="px-4 py-2 text-[#90BE6D] font-semibold">São IGUAIS</td> </tr>
-                            <tr> <td class="px-4 py-2">Alternos Internos</td> <td class="px-4 py-2">4 e 6; 3 e 5</td> <td class="px-4 py-2 text-[#90BE6D] font-semibold">São IGUAIS</td> </tr>
-                            <tr> <td class="px-4 py-2">Alternos Externos</td> <td class="px-4 py-2">1 e 7; 2 e 8</td> <td class="px-4 py-2 text-[#90BE6D] font-semibold">São IGUAIS</td> </tr>
-                            <tr> <td class="px-4 py-2">Colaterais Internos</td> <td class="px-4 py-2">4 e 5; 3 e 6</td> <td class="px-4 py-2 text-[#FFBF69] font-semibold">Somam 180° (Suplementares)</td> </tr>
-                            <tr> <td class="px-4 py-2">Colaterais Externos</td> <td class="px-4 py-2">1 e 8; 2 e 7</td> <td class="px-4 py-2 text-[#FFBF69] font-semibold">Somam 180° (Suplementares)</td> </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </section>
-    </main>
+            </section>
 
-    <button id="openChatBtn" title="Ajuda sobre Ângulos" class="fixed bottom-6 right-6 bg-[#FF9F1C] text-white p-3 md:p-4 rounded-full shadow-lg hover:bg-[#FFBF69] focus:bg-[#FFBF69] transition-transform duration-150 ease-in-out hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#FF9F1C] z-[90]">
-        <span class="text-2xl md:text-3xl">💬</span>
-        <span class="sr-only">Abrir Chat de Ajuda</span>
-    </button>
+            <section id="chat-ia" class="main-section">
+                <h2 class="text-3xl md:text-4xl font-semibold text-[#3A86FF] mb-8 text-center">Precisa de Ajuda? Fale com a IA! 🤖</h2>
+                <div class="card max-w-xl mx-auto text-center">
+                    <p class="text-lg text-gray-700 mb-6">Tem alguma dúvida sobre matemática? Quer uma explicação diferente ou um problema para praticar? Use o chat abaixo para conversar com o nosso assistente de IA!</p>
+                    <button id="openChatBtn" class="bg-[#FFBE0B] text-[#333333] font-semibold py-3 px-6 rounded-lg text-lg hover:bg-opacity-80 transition-colors">
+                        Abrir Chat de Ajuda ✨
+                    </button>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <section id="conteudo-assunto-detalhado" class="content-section hidden container mx-auto p-4 md:p-6">
+        <button id="backToSubjectsBtn" class="btn-primary mb-6">
+            &larr; Voltar para Assuntos
+        </button>
+        <div class="card">
+            <h2 id="subjectTitle" class="text-3xl md:text-4xl font-semibold text-[#3A86FF] mb-6"></h2>
+            <div id="subjectContentArea" class="prose max-w-none">
+                </div>
+        </div>
+    </section>
+
+
+    <footer class="bg-[#333333] text-white py-8 text-center mt-16">
+        <p>&copy; <span id="currentYear"></span> Professor Kelvin Radimak. Todos os direitos reservados.</p>
+        <p class="text-sm">Site de apoio para aulas de Matemática.</p>
+    </footer>
 
     <div id="geminiChatModal" class="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-end justify-center sm:items-center p-0 sm:p-4 z-[100] hidden">
         <div class="bg-white rounded-t-lg sm:rounded-lg shadow-xl w-full max-w-lg flex flex-col" style="height: 90vh; max-height: 600px; sm:height: 80vh;">
-            <div class="flex justify-between items-center p-3 md:p-4 border-b border-gray-200 bg-[#2EC4B6] text-white rounded-t-lg">
-                <h3 class="text-lg md:text-xl font-semibold">Chat de Ajuda sobre Ângulos 📐✨</h3>
+            <div class="flex justify-between items-center p-3 md:p-4 border-b border-gray-200 bg-[#3A86FF] text-white rounded-t-lg">
+                <h3 class="text-lg md:text-xl font-semibold">Chat de Matemática com IA 🧠</h3>
                 <button id="closeChatModal" class="text-white hover:text-gray-200 text-2xl font-bold">&times;</button>
             </div>
             <div id="chatMessages" class="flex-grow p-3 md:p-4 space-y-3 overflow-y-auto">
-                <div class="flex">
-                    <div class="chat-bubble-model">
-                        <p>Olá! Sou seu assistente de ângulos. 😊 Posso te ajudar a entender melhor algum conceito, ou até criar uma atividade para você praticar. O que gostaria de fazer?</p>
-                    </div>
                 </div>
-            </div>
-            <div id="chatTypingIndicator" class="px-4 py-2 text-sm text-gray-500 hidden">A IA está a digitar...</div>
+            <div id="chatTypingIndicator" class="px-4 py-2 text-sm text-gray-500 hidden">A IA está a pensar...</div>
             <div class="p-3 md:p-4 border-t border-gray-200 bg-gray-50">
                 <div class="flex items-center space-x-2">
-                    <input type="text" id="chatInput" class="flex-grow border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-[#FF9F1C] focus:border-transparent" placeholder="Sua pergunta ou pedido aqui...">
-                    <button id="sendChatBtn" title="Enviar Mensagem" class="bg-[#FF9F1C] text-white p-2 rounded-lg hover:bg-[#FFBF69] focus:bg-[#FFBF69] transition-colors focus:outline-none">
+                    <input type="text" id="chatInput" class="flex-grow border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-[#FFBE0B] focus:border-transparent" placeholder="Digite sua dúvida de matemática...">
+                    <button id="sendChatBtn" title="Enviar Mensagem" class="bg-[#FFBE0B] text-[#333333] p-2 rounded-lg hover:bg-opacity-80 transition-colors focus:outline-none">
                         <span class="text-xl">➢</span>
                          <span class="sr-only">Enviar</span>
                     </button>
@@ -410,314 +346,1113 @@
         </div>
     </div>
 
-    <div id="geminiModal" class="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center p-4 z-[100] hidden">
-        <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-lg max-h-[80vh] overflow-y-auto">
-            <div class="flex justify-between items-center mb-4">
-                <h3 id="geminiModalTitle" class="text-xl font-semibold text-[#2EC4B6]">✨ Assistente de Ângulos ✨</h3>
-                <button id="closeGeminiModal" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
-            </div>
-            <div id="geminiModalContent" class="text-gray-700 text-sm md:text-base">
-                </div>
-        </div>
-    </div>
-
-
-    <footer class="bg-[#272932] text-[#F7F7F7] py-6 text-center mt-12">
-        <p>&copy; <span id="currentYear"></span> Assunto: Ângulos. Feito com 💙 para os alunos do Prof. Radimak!</p>
-        <p class="text-xs mt-1">Conteúdo educacional para o 8º ano.</p>
-    </footer>
-
     <script>
-        document.getElementById('currentYear').textContent = new Date().getFullYear();
-
-        function wrapLabels(label, maxWidth) {
-            if (typeof label !== 'string' || label.length <= maxWidth) { return label; }
-            const words = label.split(' ');
-            const lines = [];
-            let currentLine = '';
-            for (const word of words) {
-                if ((currentLine + ' ' + word).trim().length > maxWidth && currentLine.length > 0) {
-                    lines.push(currentLine.trim());
-                    currentLine = word;
-                } else {
-                    currentLine = (currentLine + ' ' + word).trim();
-                }
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentYearSpan = document.getElementById('currentYear');
+            if (currentYearSpan) {
+                currentYearSpan.textContent = new Date().getFullYear();
             }
-            if (currentLine.length > 0) { lines.push(currentLine.trim()); }
-            return lines.length > 0 ? lines : label;
-        }
-        
-        const commonChartOptions = {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { position: 'bottom', labels: { color: '#272932', font: { family: 'Poppins, sans-serif', size: 12 } } },
-                tooltip: {
-                    backgroundColor: 'rgba(39, 41, 50, 0.8)',
-                    titleFont: { family: 'Poppins, sans-serif', size: 13, weight: 'bold' },
-                    bodyFont: { family: 'Poppins, sans-serif', size: 11 },
-                    callbacks: {
-                        title: function(tooltipItems) {
-                            const item = tooltipItems[0];
-                            let label = item.chart.data.labels[item.dataIndex];
-                            return Array.isArray(label) ? label.join(' ') : label;
-                        },
-                        label: function(context) {
-                            let label = context.dataset.label || context.label || '';
-                            if (label) { label += ': '; }
-                            if (context.parsed !== null) { label += context.parsed + '°'; }
-                            return label;
-                        }
+
+            const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+            const navLinksDiv = document.getElementById('navLinks');
+            if (mobileMenuBtn && navLinksDiv) {
+                mobileMenuBtn.addEventListener('click', () => {
+                    navLinksDiv.classList.toggle('hidden');
+                });
+            }
+
+            const header = document.getElementById('header');
+            const headerHeight = header ? header.offsetHeight : 60;
+            const navInternalLinks = document.querySelectorAll('#navLinks a[href^="#"], header a[href^="#"], main a[href^="#inicio"], main a[href^="#assuntos"]');
+
+            navInternalLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const targetId = this.getAttribute('href').substring(1);
+                    
+                    const mainContentContainer = document.getElementById('mainContentContainer');
+                    if (mainContentContainer && mainContentContainer.classList.contains('hidden')) {
+                        showMainContent(); 
                     }
-                }
-            },
-        };
 
-        const chartColors = ['#2EC4B6', '#FF9F1C', '#FFBF69', '#90BE6D'];
-
-        const complementaryAnglesCtx = document.getElementById('complementaryAnglesChart')?.getContext('2d');
-        if (complementaryAnglesCtx) {
-            new Chart(complementaryAnglesCtx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Ângulo 1 (Ex: 30°)', 'Ângulo 2 (Ex: 60°)'],
-                    datasets: [{ data: [30, 60], backgroundColor: [chartColors[0], chartColors[1]], borderColor: '#FFFFFF', borderWidth: 3, hoverOffset: 4 }]
-                },
-                options: { ...commonChartOptions }
+                    setTimeout(() => {
+                        const targetElement = document.getElementById(targetId);
+                        if (targetElement) {
+                            const elementPosition = targetElement.getBoundingClientRect().top + window.pageYOffset;
+                            const offsetPosition = elementPosition - headerHeight;
+                            window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
+                            if (navLinksDiv && !navLinksDiv.classList.contains('hidden') && window.innerWidth < 768) {
+                                navLinksDiv.classList.add('hidden'); 
+                            }
+                        }
+                    }, 50);
+                });
             });
-        }
-
-        const supplementaryAnglesCtx = document.getElementById('supplementaryAnglesChart')?.getContext('2d');
-        if (supplementaryAnglesCtx) {
-            new Chart(supplementaryAnglesCtx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Ângulo A (Ex: 110°)', 'Ângulo B (Ex: 70°)'],
-                    datasets: [{ data: [110, 70], backgroundColor: [chartColors[2], chartColors[3]], borderColor: '#FFFFFF', borderWidth: 3, hoverOffset: 4 }]
-                },
-                options: { ...commonChartOptions }
-            });
-        }
-
-        const sections = document.querySelectorAll('section[id]');
-        const navLinks = document.querySelectorAll('#navbar a.nav-link');
-        const navbar = document.getElementById('navbar'); 
-        const navbarHeight = navbar ? navbar.offsetHeight : 0;
-
-
-        window.addEventListener('scroll', () => {
-            let currentSectionId = '';
-            sections.forEach(section => {
-                const sectionTop = section.offsetTop;
-                if (pageYOffset >= sectionTop - navbarHeight - 20) { 
-                    currentSectionId = section.getAttribute('id');
-                }
-            });
-
-            navLinks.forEach(link => {
-                link.classList.remove('active');
-                const linkHref = link.getAttribute('href');
-                if (linkHref && linkHref.substring(1) === currentSectionId) {
-                    link.classList.add('active');
-                }
-            });
-        });
-        
-        navLinks.forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                const targetId = this.getAttribute('href')?.substring(1);
-                if (!targetId) return;
-                const targetElement = document.getElementById(targetId);
-                if (targetElement) {
-                    const elementPosition = targetElement.getBoundingClientRect().top + window.pageYOffset;
-                    const offsetPosition = elementPosition - navbarHeight - 10; 
-        
-                    window.scrollTo({ top: offsetPosition, behavior: "smooth" });
-                }
-            });
-        });
-
-        
-        const geminiModal = document.getElementById('geminiModal');
-        const geminiModalTitle = document.getElementById('geminiModalTitle');
-        const geminiModalContent = document.getElementById('geminiModalContent');
-        const closeGeminiModalBtn = document.getElementById('closeGeminiModal');
-
-        function showGeminiModal(title) {
-            if(geminiModalTitle) geminiModalTitle.textContent = title;
-            if(geminiModalContent) geminiModalContent.innerHTML = '<div class="flex flex-col justify-center items-center h-40"><div class="animate-spin rounded-full h-12 w-12 border-b-2 border-t-2 border-[#FF9F1C]"></div><p class="ml-3 mt-4 text-gray-600 text-sm">A IA está a pensar... Aguarde um momento!</p></div>';
-            if(geminiModal) geminiModal.classList.remove('hidden');
-        }
-
-        function hideGeminiModal() {
-            if(geminiModal) geminiModal.classList.add('hidden');
-        }
-
-        if(closeGeminiModalBtn) closeGeminiModalBtn.addEventListener('click', hideGeminiModal);
-        if(geminiModal) geminiModal.addEventListener('click', function(event) {
-            if (event.target === geminiModal) { hideGeminiModal(); }
-        });
-
-        async function callGeminiAPI(promptText, isChat = false, conversationHistory = []) {
-            const apiKey = "AIzaSyDxcxVmGPBbg7mJ6_cmMDkHrDpbx3Lspik"; 
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
             
-            let contentsPayload;
-            if (isChat) {
-                contentsPayload = [...conversationHistory, { role: "user", parts: [{ text: promptText }] }];
-            } else {
-                contentsPayload = [{ role: "user", parts: [{ text: promptText }] }];
-            }
-            
-            const payload = { contents: contentsPayload };
+            const mainSections = document.querySelectorAll('#mainContentContainer .main-section'); 
+            const navLinkElements = document.querySelectorAll('#navLinks a');
+            const subjectContentSection = document.getElementById('conteudo-assunto-detalhado');
+            const mainContentContainerRef = document.getElementById('mainContentContainer'); 
 
-            try {
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
+            window.addEventListener('scroll', () => {
+                if (mainContentContainerRef && mainContentContainerRef.classList.contains('hidden')) return; 
+
+                let currentSectionId = '';
+                mainSections.forEach(section => {
+                    const sectionTop = section.offsetTop;
+                    if (pageYOffset >= sectionTop - headerHeight - 50) { 
+                        currentSectionId = section.getAttribute('id');
+                    }
                 });
 
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    console.error('Erro da API (dados):', errorData);
-                    throw new Error(`Erro ${response.status}: ${errorData?.error?.message || response.statusText}`);
-                }
-                const result = await response.json();
-                if (result.candidates && result.candidates.length > 0 &&
-                    result.candidates[0].content && result.candidates[0].content.parts &&
-                    result.candidates[0].content.parts.length > 0) {
-                    return result.candidates[0].content.parts[0].text;
-                } else {
-                    console.error('Resposta inesperada da API Gemini:', result);
-                    if (result.promptFeedback && result.promptFeedback.blockReason) {
-                        return `Não foi possível gerar a resposta devido a restrições de conteúdo (${result.promptFeedback.blockReason}). Por favor, tente uma abordagem diferente.`;
+                navLinkElements.forEach(link => {
+                    link.classList.remove('active');
+                    const linkHref = link.getAttribute('href');
+                    if (linkHref && linkHref.substring(1) === currentSectionId) {
+                        link.classList.add('active');
                     }
-                    return 'Desculpe, não consegui obter uma resposta válida da IA. Tente novamente.';
+                });
+            });
+
+            function showSubjectContent(subjectId, subjectName) {
+                if(mainContentContainerRef) mainContentContainerRef.classList.add('hidden');
+                if(subjectContentSection) subjectContentSection.classList.remove('hidden');
+
+                const subjectTitleEl = document.getElementById('subjectTitle');
+                if(subjectTitleEl) subjectTitleEl.textContent = subjectName;
+                
+                const contentArea = document.getElementById('subjectContentArea');
+                if(contentArea){
+                    // 6º ANO CONTEÚDO
+                    if (subjectId === "6-naturais") {
+                        contentArea.innerHTML = `
+                            <h3 class="subject-content-title">Resumo Detalhado: Números Naturais e Operações</h3>
+                            <p class="subject-content-text">Os <strong>Números Naturais</strong> (representados pelo símbolo ℕ) são aqueles que usamos intuitivamente para contar objetos ou indicar uma ordem: 0, 1, 2, 3, 4, 5, ... e assim por diante, infinitamente. O zero é incluído por convenção em muitos contextos.</p>
+                            <img src="https://placehold.co/400x150/83C5BE/FFFFFF?text=Reta+Numérica+Naturais" alt="Imagem da Reta Numérica com Números Naturais" class="example-image">
+                            <p class="caption">A reta numérica ajuda a visualizar a ordem e a sequência dos números naturais.</p>
+                            <p class="subject-content-text">Com os números naturais, realizamos quatro operações fundamentais:</p>
+                            <ul class="subject-content-list">
+                                <li><strong>Adição (+):</strong> Significa juntar, acrescentar, somar quantidades. Os números que somamos são chamados de parcelas, e o resultado é a soma. Ex: 12 (parcela) + 8 (parcela) = 20 (soma).</li>
+                                <li><strong>Subtração (-):</strong> Significa tirar uma quantidade de outra, encontrar a diferença ou o que falta. O primeiro número é o minuendo, o segundo é o subtraendo, e o resultado é a diferença ou resto. Ex: 25 (minuendo) - 10 (subtraendo) = 15 (diferença). No conjunto dos naturais, a subtração só é possível se o minuendo for maior ou igual ao subtraendo.</li>
+                                <li><strong>Multiplicação (× ou ⋅):</strong> É uma forma de adição repetida de parcelas iguais. Os números que multiplicamos são os fatores, e o resultado é o produto. Ex: 4 (fator) × 3 (fator) = 4 + 4 + 4 = 12 (produto).</li>
+                                <li><strong>Divisão (÷ ou /):</strong> Significa repartir uma quantidade em partes iguais ou verificar quantas vezes uma quantidade cabe em outra. O número a ser dividido é o dividendo, o número pelo qual se divide é o divisor, o resultado é o quociente e o que sobra (se houver) é o resto.
+                                    <ul class="list-[circle] list-inside ml-4">
+                                        <li>Divisão Exata: Resto é zero. Ex: 10 ÷ 2 = 5 (resto 0).</li>
+                                        <li>Divisão Não Exata: Resto é diferente de zero. Ex: 10 ÷ 3 = 3 (quociente) e resto 1.</li>
+                                    </ul>
+                                </li>
+                            </ul>
+                            <p class="subject-content-text"><strong>Expressões Numéricas:</strong> Envolvem várias operações. Devemos seguir uma ordem: 1º Potenciação e Radiciação (se houver), 2º Multiplicação e Divisão (na ordem em que aparecem), 3º Adição e Subtração (na ordem em que aparecem). Sinais de associação (parênteses, colchetes, chaves) indicam prioridade.</p>
+                            <h3 class="subject-activity-title">Atividade Rápida 🧠</h3>
+                            <ol class="subject-activity-list">
+                                <li>Se Pedro tem 3 caixas com 12 lápis em cada uma, e depois ganha mais 5 lápis, com quantos lápis ele fica no total?</li>
+                                <li>Resolva a expressão: 5 + 3 × (10 - 4) ÷ 2</li>
+                                <li>Uma turma tem 30 alunos. Se queremos formar grupos de 4 alunos, quantos grupos completos podemos formar e quantos alunos sobrarão?</li>
+                            </ol>`;
+                    } else if (subjectId === "6-mmc-mdc") {
+                        contentArea.innerHTML = `
+                            <h3 class="subject-content-title">Resumo Detalhado: Múltiplos, Divisores, MMC e MDC</h3>
+                            <p class="subject-content-text"><strong>Múltiplos de um número natural:</strong> São todos os números que obtemos ao multiplicar esse número pela sequência dos números naturais (0, 1, 2, 3, ...). O conjunto dos múltiplos de um número é infinito (exceto o zero, que só tem o zero como múltiplo).</p>
+                            <p class="subject-content-text">Ex: M(4) = {0, 4, 8, 12, 16, 20, ...} (obtidos multiplicando 4 por 0, 1, 2, 3, ...)</p>
+                            <p class="subject-content-text"><strong>Divisores de um número natural:</strong> São todos os números naturais pelos quais ele pode ser dividido de forma exata (ou seja, o resto da divisão é zero). O conjunto dos divisores de um número é finito.</p>
+                            <p class="subject-content-text">Ex: D(12) = {1, 2, 3, 4, 6, 12} (12 pode ser dividido por cada um desses números sem deixar resto).</p>
+                            <img src="https://placehold.co/400x150/83C5BE/FFFFFF?text=Múltiplos+e+Divisores" alt="Exemplo de Múltiplos e Divisores" class="example-image">
+                            <p class="caption">Visualizando múltiplos e divisores.</p>
+                            <p class="subject-content-text"><strong>Números Primos:</strong> São números naturais maiores que 1 que possuem apenas dois divisores distintos: o 1 e ele mesmo. Ex: 2, 3, 5, 7, 11, 13, ...</p>
+                            <p class="subject-content-text"><strong>Decomposição em Fatores Primos (Fatoração):</strong> Todo número natural composto (não primo e maior que 1) pode ser escrito de forma única como um produto de números primos.</p>
+                            <p class="subject-content-text"><strong>MMC (Mínimo Múltiplo Comum):</strong> É o menor múltiplo comum (diferente de zero) a dois ou mais números. Para calcular o MMC, podemos listar os múltiplos ou usar a decomposição em fatores primos (pegamos todos os fatores primos comuns e não comuns, com o maior expoente).</p>
+                            <p class="subject-content-text">Ex: MMC(12, 18). 12 = 2<sup>2</sup> × 3; 18 = 2 × 3<sup>2</sup>. MMC = 2<sup>2</sup> × 3<sup>2</sup> = 4 × 9 = 36.</p>
+                            <p class="subject-content-text"><strong>MDC (Máximo Divisor Comum):</strong> É o maior divisor comum a dois ou mais números. Para calcular o MDC, podemos listar os divisores ou usar a decomposição em fatores primos (pegamos apenas os fatores primos comuns, com o menor expoente).</p>
+                            <p class="subject-content-text">Ex: MDC(12, 18). 12 = 2<sup>2</sup> × 3; 18 = 2 × 3<sup>2</sup>. MDC = 2<sup>1</sup> × 3<sup>1</sup> = 2 × 3 = 6.</p>
+                            <h3 class="subject-activity-title">Atividade Rápida 🧠</h3>
+                            <ol class="subject-activity-list">
+                                <li>Encontre os 4 primeiros múltiplos (diferentes de zero) de 9.</li>
+                                <li>Decomponha o número 60 em fatores primos.</li>
+                                <li>Dois ônibus partem de um terminal. Um sai a cada 15 minutos e o outro a cada 20 minutos. Se eles saíram juntos às 8h, a que horas sairão juntos novamente? (Dica: MMC)</li>
+                                <li>Queremos dividir duas barras de chocolate, uma de 24 cm e outra de 30 cm, em pedaços do maior tamanho possível, sem que haja sobras e todos os pedaços tenham o mesmo tamanho. Qual será o tamanho de cada pedaço? (Dica: MDC)</li>
+                            </ol>`;
+                    } else if (subjectId === "6-fracoes") {
+                        contentArea.innerHTML = `
+                            <h3 class="subject-content-title">Resumo Detalhado: Frações - Conceitos e Operações</h3>
+                            <p class="subject-content-text">Uma <strong>fração</strong> é uma forma de representar uma parte de um todo que foi dividido em partes iguais, ou uma razão entre duas quantidades. Ela é escrita como <span class="formula">a/b</span>, onde:</p>
+                            <ul class="subject-content-list">
+                                <li><strong>Numerador (a):</strong> Indica quantas partes estamos considerando.</li>
+                                <li><strong>Denominador (b):</strong> Indica em quantas partes iguais o todo foi dividido. O denominador deve ser diferente de zero.</li>
+                            </ul>
+                            <img src="https://placehold.co/300x200/83C5BE/FFFFFF?text=Fração+3/4+de+um+círculo" alt="Imagem de um círculo dividido em 4 partes com 3 partes destacadas" class="example-image">
+                            <p class="caption">Exemplo: A fração 3/4 representa 3 partes de um todo dividido em 4 partes iguais.</p>
+                            <p class="subject-content-text"><strong>Leitura de Frações:</strong> 1/2 (um meio), 2/3 (dois terços), 3/4 (três quartos), 5/10 (cinco décimos). Para denominadores maiores que 10 (que não sejam potências de 10), lemos o numerador seguido do denominador com a terminação "avos" (ex: 7/11 - sete onze avos).</p>
+                            <p class="subject-content-text"><strong>Tipos de Frações:</strong></p>
+                            <ul class="subject-content-list">
+                                <li><strong>Própria:</strong> O numerador é menor que o denominador (representa menos que um inteiro). Ex: 2/5.</li>
+                                <li><strong>Imprópria:</strong> O numerador é maior ou igual ao denominador (representa um inteiro ou mais). Ex: 7/3, 4/4.</li>
+                                <li><strong>Aparente:</strong> O numerador é um múltiplo do denominador (representa um número inteiro). Ex: 6/3 (igual a 2), 5/5 (igual a 1).</li>
+                            </ul>
+                            <p class="subject-content-text"><strong>Frações Equivalentes:</strong> Representam a mesma parte do todo, mas são escritas com números diferentes. Obtemos frações equivalentes multiplicando ou dividindo o numerador e o denominador pelo mesmo número (diferente de zero). Ex: 1/2 = 2/4 = 3/6.</p>
+                            <p class="subject-content-text"><strong>Simplificação de Frações:</strong> Tornar a fração irredutível, dividindo o numerador e o denominador pelo MDC entre eles.</p>
+                            <p class="subject-content-text"><strong>Operações com Frações:</strong></p>
+                            <ul class="subject-content-list">
+                                <li><strong>Adição e Subtração:</strong>
+                                    <ul class="list-[circle] list-inside ml-4">
+                                        <li>Denominadores Iguais: Somamos/subtraímos os numeradores e conservamos o denominador. Ex: 1/5 + 2/5 = 3/5.</li>
+                                        <li>Denominadores Diferentes: Encontramos frações equivalentes com o mesmo denominador (usando o MMC dos denominadores originais) e depois operamos. Ex: 1/2 + 1/3 = 3/6 + 2/6 = 5/6.</li>
+                                    </ul>
+                                </li>
+                                <li><strong>Multiplicação:</strong> Multiplicamos os numeradores entre si e os denominadores entre si. Ex: (2/3) × (4/5) = (2×4)/(3×5) = 8/15.</li>
+                                <li><strong>Divisão:</strong> Multiplicamos a primeira fração pelo inverso da segunda. Ex: (1/2) ÷ (3/4) = (1/2) × (4/3) = 4/6 = 2/3.</li>
+                            </ul>
+                            <h3 class="subject-activity-title">Atividade Rápida 🧠</h3>
+                            <ol class="subject-activity-list">
+                                <li>Represente com um desenho a fração 2/6 e depois simplifique-a.</li>
+                                <li>Calcule: 3/7 + 2/7 = ?</li>
+                                <li>Calcule: 2/3 - 1/4 = ? (Lembre-se do MMC!)</li>
+                                <li>Ana gastou 1/3 do seu salário com aluguel e 1/4 com alimentação. Que fração do salário ela gastou no total? Que fração sobrou?</li>
+                            </ol>`;
+                    } else if (subjectId === "6-decimais") {
+                        contentArea.innerHTML = `
+                            <h3 class="subject-content-title">Resumo Detalhado: Números Decimais - Conceitos e Operações</h3>
+                            <p class="subject-content-text">Os <strong>números decimais</strong> são uma forma de representar números que não são inteiros, ou seja, partes de um inteiro, utilizando o sistema de numeração decimal. Eles são caracterizados pelo uso da vírgula para separar a parte inteira da parte fracionária (decimal).</p>
+                            <p class="subject-content-text">Exemplo: No número <span class="formula">12,345</span>:</p>
+                            <ul class="subject-content-list">
+                                <li><strong>12</strong> é a parte inteira.</li>
+                                <li><strong>345</strong> é a parte decimal.</li>
+                                <li>O '3' representa 3 décimos (3/10).</li>
+                                <li>O '4' representa 4 centésimos (4/100).</li>
+                                <li>O '5' representa 5 milésimos (5/1000).</li>
+                            </ul>
+                            <img src="https://placehold.co/400x100/83C5BE/FFFFFF?text=Quadro+Valor+de+Lugar+Decimais" alt="Quadro de valor de lugar mostrando parte inteira e decimal" class="example-image">
+                            <p class="caption">Entendendo as casas decimais.</p>
+                            <p class="subject-content-text"><strong>Leitura de Decimais:</strong> Lê-se a parte inteira, a palavra "inteiros" (se houver parte inteira e ela for maior que um, ou se for zero e houver parte decimal), e depois a parte decimal seguida do nome da última casa decimal (décimos, centésimos, milésimos, etc.). Ex: 0,5 (cinco décimos); 3,12 (três inteiros e doze centésimos).</p>
+                            <p class="subject-content-text"><strong>Transformação entre Fração Decimal e Número Decimal:</strong></p>
+                            <ul class="subject-content-list">
+                                <li>Fração para Decimal: Divide-se o numerador pelo denominador. Ex: 3/4 = 3 ÷ 4 = 0,75.</li>
+                                <li>Decimal para Fração: O numerador é o número sem a vírgula, e o denominador é o algarismo 1 seguido de tantos zeros quantas forem as casas decimais. Ex: 0,75 = 75/100 (que pode ser simplificada para 3/4).</li>
+                            </ul>
+                            <p class="subject-content-text"><strong>Operações com Números Decimais:</strong></p>
+                            <ul class="subject-content-list">
+                                <li><strong>Adição e Subtração:</strong> Alinhamos os números vírgula embaixo de vírgula e completamos com zeros se necessário. Somamos ou subtraímos como se fossem números inteiros, mantendo a vírgula alinhada no resultado.</li>
+                                <li><strong>Multiplicação:</strong> Multiplicamos os números como se fossem inteiros. No resultado final, contamos o total de casas decimais dos fatores e colocamos a vírgula no produto, contando da direita para a esquerda.</li>
+                                <li><strong>Divisão:</strong> Para dividir, igualamos o número de casas decimais do dividendo e do divisor (multiplicando ambos por 10, 100, 1000, etc., se necessário), eliminamos as vírgulas e efetuamos a divisão como se fossem números inteiros. Se a divisão não for exata, podemos continuar adicionando zeros ao resto e colocando vírgula no quociente.</li>
+                            </ul>
+                            <h3 class="subject-activity-title">Atividade Rápida 🧠</h3>
+                            <ol class="subject-activity-list">
+                                <li>Escreva por extenso o número 12,05.</li>
+                                <li>Calcule: 3,75 + 2,5 = ?</li>
+                                <li>Se um produto custa R$ 4,25 e você compra 3 unidades, quanto pagará?</li>
+                                <li>Divida 7 por 2 e apresente o resultado como número decimal.</li>
+                            </ol>`;
+                    } else if (subjectId === "6-geometria") {
+                        contentArea.innerHTML = `
+                            <h3 class="subject-content-title">Resumo Detalhado: Geometria Plana - Figuras, Perímetro e Área (básico)</h3>
+                            <p class="subject-content-text">A <strong>Geometria Plana</strong> (ou Euclidiana) é o estudo das figuras geométricas que existem em um plano, ou seja, em duas dimensões (comprimento e largura).</p>
+                            <p class="subject-content-text"><strong>Elementos Fundamentais:</strong> Ponto (não tem dimensão), Reta (infinita, uma dimensão), Plano (infinito, duas dimensões).</p>
+                            <p class="subject-content-text"><strong>Figuras Planas Comuns (Polígonos e Círculo):</strong></p>
+                            <ul class="subject-content-list">
+                                <li><strong>Polígonos:</strong> Figuras fechadas formadas por segmentos de reta que não se cruzam.
+                                    <ul class="list-[circle] list-inside ml-4">
+                                        <li><strong>Triângulo (3 lados):</strong> Ex: Equilátero, Isósceles, Escaleno.</li>
+                                        <li><strong>Quadrilátero (4 lados):</strong> Ex: Quadrado (4 lados iguais, 4 ângulos retos), Retângulo (lados opostos iguais, 4 ângulos retos), Losango, Paralelogramo, Trapézio.</li>
+                                        <li><strong>Pentágono (5 lados), Hexágono (6 lados)</strong>, etc.</li>
+                                    </ul>
+                                </li>
+                                <img src="https://placehold.co/400x150/83C5BE/FFFFFF?text=Diversos+Polígonos" alt="Imagem de diversos polígonos" class="example-image">
+                                <p class="caption">Exemplos de polígonos.</p>
+                                <li><strong>Círculo:</strong> Região do plano limitada por uma circunferência. A circunferência é a linha formada por todos os pontos que estão a uma mesma distância (raio) de um ponto central.</li>
+                            </ul>
+                            <p class="subject-content-text"><strong>Perímetro (P):</strong> É a medida do contorno de uma figura plana. Para polígonos, é a soma das medidas de todos os seus lados.</p>
+                            <p class="subject-content-text">Ex: Perímetro de um retângulo de lados 5cm e 3cm: P = 5 + 3 + 5 + 3 = 16 cm.</p>
+                            <p class="subject-content-text"><strong>Área (A):</strong> É a medida da superfície ocupada pela figura plana. As unidades de área são quadradas (cm<sup>2</sup>, m<sup>2</sup>, etc.).</p>
+                            <ul class="subject-content-list">
+                                <li>Área do Retângulo: <span class="formula">A = base × altura</span></li>
+                                <li>Área do Quadrado: <span class="formula">A = lado × lado = lado<sup>2</sup></span></li>
+                            </ul>
+                             <img src="https://placehold.co/350x180/83C5BE/FFFFFF?text=Perímetro+e+Área+de+Retângulo" alt="Imagem ilustrando perímetro e área de um retângulo" class="example-image">
+                            <h3 class="subject-activity-title">Atividade Rápida 🧠</h3>
+                            <ol class="subject-activity-list">
+                                <li>Qual o nome de um polígono de 5 lados? E de 6 lados?</li>
+                                <li>Um jardim quadrado tem 10 metros de lado. Qual o seu perímetro e qual a sua área?</li>
+                                <li>Desenhe uma figura que tenha um perímetro de 12 unidades e outra figura (diferente da primeira) que também tenha perímetro de 12 unidades.</li>
+                                <li>Se a base de um retângulo mede 8 cm e sua altura mede metade da base, qual é a área desse retângulo?</li>
+                            </ol>`;
+                    } else if (subjectId === "6-medidas") {
+                        contentArea.innerHTML = `
+                            <h3 class="subject-content-title">Resumo Detalhado: Medidas de Comprimento, Massa, Capacidade e Tempo</h3>
+                            <p class="subject-content-text">No nosso dia a dia, usamos diferentes <strong>unidades de medida</strong> para quantificar grandezas como distância, "peso", volume de líquidos e duração de eventos.</p>
+                            <p class="subject-content-text"><strong>Medidas de Comprimento:</strong> Usadas para medir distâncias, alturas, larguras, espessuras.</p>
+                            <ul class="subject-content-list">
+                                <li>Unidade Padrão (SI): <strong>metro (m)</strong>.</li>
+                                <li>Múltiplos: decâmetro (dam = 10m), hectômetro (hm = 100m), <strong>quilômetro (km = 1000m)</strong>.</li>
+                                <li>Submúltiplos: decímetro (dm = 0,1m), <strong>centímetro (cm = 0,01m)</strong>, milímetro (mm = 0,001m).</li>
+                                <li>Conversões: 1 km = 1000 m; 1 m = 100 cm; 1 cm = 10 mm.</li>
+                            </ul>
+                            <img src="https://placehold.co/300x100/83C5BE/FFFFFF?text=Régua+e+Fita+Métrica" alt="Imagem de régua e fita métrica" class="example-image">
+                            <p class="subject-content-text"><strong>Medidas de Massa:</strong> Usadas para medir a quantidade de matéria de um corpo (popularmente chamado de "peso").</p>
+                            <ul class="subject-content-list">
+                                <li>Unidade Padrão (SI): <strong>quilograma (kg)</strong>.</li>
+                                <li>Outras unidades comuns: <strong>grama (g)</strong>, miligrama (mg), tonelada (t).</li>
+                                <li>Conversões: 1 kg = 1000 g; 1 g = 1000 mg; 1 t = 1000 kg.</li>
+                            </ul>
+                             <img src="https://placehold.co/300x150/83C5BE/FFFFFF?text=Balança+com+Pesos" alt="Imagem de balança com pesos" class="example-image">
+                            <p class="subject-content-text"><strong>Medidas de Capacidade:</strong> Usadas para medir o volume que um recipiente pode conter, geralmente de líquidos.</p>
+                            <ul class="subject-content-list">
+                                <li>Unidade Padrão: <strong>litro (L ou l)</strong>.</li>
+                                <li>Outras unidades comuns: <strong>mililitro (mL ou ml)</strong>.</li>
+                                <li>Conversões: 1 L = 1000 mL. (Também: 1 L = 1 dm<sup>3</sup>; 1 mL = 1 cm<sup>3</sup>).</li>
+                            </ul>
+                            <p class="subject-content-text"><strong>Medidas de Tempo:</strong> Usadas para medir a duração ou o intervalo entre eventos.</p>
+                            <ul class="subject-content-list">
+                                <li>Unidades comuns: <strong>segundo (s)</strong>, <strong>minuto (min)</strong>, <strong>hora (h)</strong>, dia, semana, mês, ano.</li>
+                                <li>Conversões: 1 min = 60 s; 1 h = 60 min = 3600 s; 1 dia = 24 h.</li>
+                            </ul>
+                            <h3 class="subject-activity-title">Atividade Rápida 🧠</h3>
+                            <ol class="subject-activity-list">
+                                <li>Uma corrida tem 5 km. Quantos metros são isso?</li>
+                                <li>Uma receita pede 250 g de farinha. Se você tem um pacote de 1 kg, quantas vezes poderá usar essa quantidade da receita?</li>
+                                <li>Uma jarra tem capacidade para 1,5 L de suco. Se você serviu 3 copos de 200 mL cada, quantos mililitros de suco sobraram na jarra?</li>
+                                <li>Se uma aula começa às 7h30min e termina às 9h10min, qual a duração da aula em minutos?</li>
+                            </ol>`;
+                    
+                    // 7º ANO CONTEÚDO (já preenchido anteriormente, mantido para consistência)
+                    } else if (subjectId === "7-inteiros") {
+                        contentArea.innerHTML = `
+                            <h3 class="subject-content-title">Resumo Detalhado: Números Inteiros - Conceitos e Operações</h3>
+                            <p class="subject-content-text">O conjunto dos <strong>Números Inteiros</strong> (representado por ℤ) surge da necessidade de representar quantidades negativas, além das positivas e do zero. Ele é formado pelos números naturais (0, 1, 2, 3, ...), seus opostos (..., -3, -2, -1) e o zero.</p>
+                            <p class="subject-content-text">ℤ = {..., -3, -2, -1, 0, 1, 2, 3, ...}</p>
+                            <p class="subject-content-text"><strong>Reta Numérica Inteira:</strong> Os números inteiros são ordenados na reta, com o zero no centro. À direita do zero ficam os inteiros positivos, e à esquerda, os inteiros negativos. Quanto mais à direita, maior o número.</p>
+                            <img src="https://placehold.co/400x100/83C5BE/FFFFFF?text=Reta+Numérica+Inteiros" alt="Imagem da Reta Numérica com Números Inteiros" class="example-image">
+                            <p class="subject-content-text"><strong>Módulo ou Valor Absoluto (|n|):</strong> É a distância de um número inteiro até o zero na reta numérica. O módulo é sempre um valor não negativo. Ex: |-5| = 5; |+3| = 3; |0| = 0.</p>
+                            <p class="subject-content-text"><strong>Números Opostos ou Simétricos:</strong> São números que estão à mesma distância do zero na reta, mas em lados opostos. Ex: +4 e -4 são opostos.</p>
+                            <p class="subject-content-text"><strong>Operações com Números Inteiros:</strong></p>
+                            <ul class="subject-content-list">
+                                <li><strong>Adição:</strong>
+                                    <ul class="list-[circle] list-inside ml-4">
+                                        <li>Sinais Iguais: Soma-se os módulos e conserva-se o sinal. Ex: (+2) + (+3) = +5; (-2) + (-3) = -5.</li>
+                                        <li>Sinais Diferentes: Subtrai-se o menor módulo do maior módulo e conserva-se o sinal do número de maior módulo. Ex: (+2) + (-5) = -3; (-2) + (+5) = +3.</li>
+                                    </ul>
+                                </li>
+                                <li><strong>Subtração:</strong> Subtrair um número inteiro é o mesmo que somar o seu oposto. Ex: (+7) - (+3) = (+7) + (-3) = +4;  (+7) - (-3) = (+7) + (+3) = +10.</li>
+                                <li><strong>Multiplicação e Divisão:</strong>
+                                    <ul class="list-[circle] list-inside ml-4">
+                                        <li>Sinais Iguais: O resultado é sempre positivo. Ex: (+2)×(+3)=+6; (-2)×(-3)=+6; (+6)÷(+3)=+2; (-6)÷(-3)=+2.</li>
+                                        <li>Sinais Diferentes: O resultado é sempre negativo. Ex: (+2)×(-3)=-6; (-2)×(+3)=-6; (+6)÷(-3)=-2; (-6)÷(+3)=-2.</li>
+                                    </ul>
+                                </li>
+                            </ul>
+                            <h3 class="subject-activity-title">Atividade Rápida 🧠</h3>
+                            <ol class="subject-activity-list">
+                                <li>Se um termômetro marca -3°C e a temperatura sobe 7°C, qual será a nova temperatura?</li>
+                                <li>Calcule: (-15) + (+8) - (-4) = ?</li>
+                                <li>Qual o resultado de (-6) × (+5) ÷ (-3)?</li>
+                                <li>Um mergulhador estava a -10 metros (10m abaixo do nível do mar) e desceu mais 5 metros. Qual sua nova profundidade?</li>
+                            </ol>`;
+                    } else if (subjectId === "7-racionais") {
+                        contentArea.innerHTML = `
+                            <h3 class="subject-content-title">Resumo Detalhado: Números Racionais - Conceitos e Operações</h3>
+                            <p class="subject-content-text">O conjunto dos <strong>Números Racionais</strong> (representado por ℚ) inclui todos os números que podem ser escritos na forma de uma fração <span class="formula">a/b</span>, onde 'a' e 'b' são números inteiros e 'b' é diferente de zero (b ≠ 0).</p>
+                            <p class="subject-content-text">Isso significa que os números racionais englobam:</p>
+                            <ul class="subject-content-list">
+                                <li><strong>Números Inteiros:</strong> Pois todo inteiro pode ser escrito com denominador 1 (ex: 5 = 5/1; -3 = -3/1).</li>
+                                <li><strong>Frações (positivas e negativas):</strong> Ex: 1/2, -3/4, 7/5.</li>
+                                <li><strong>Números Decimais Exatos:</strong> Aqueles que têm um número finito de casas decimais. Ex: 0,25 (igual a 1/4); -1,5 (igual a -3/2).</li>
+                                <li><strong>Dízimas Periódicas:</strong> Números decimais infinitos onde um ou mais algarismos se repetem periodicamente. Ex: 0,333... (igual a 1/3); 0,121212... (igual a 12/99 ou 4/33).</li>
+                            </ul>
+                            <img src="https://placehold.co/400x200/83C5BE/FFFFFF?text=Exemplos+de+Racionais" alt="Exemplos de números racionais: frações, decimais, dízimas" class="example-image">
+                            <p class="subject-content-text"><strong>Operações com Números Racionais:</strong></p>
+                            <p class="subject-content-text">As operações seguem as regras já vistas para frações e para números decimais, incluindo as regras de sinais dos números inteiros.</p>
+                            <ul class="subject-content-list">
+                                <li><strong>Adição e Subtração:</strong> Se estiverem em forma de fração, reduzimos ao mesmo denominador (MMC). Se estiverem na forma decimal, alinhamos a vírgula.</li>
+                                <li><strong>Multiplicação:</strong> Na forma de fração, multiplicamos numeradores com numeradores e denominadores com denominadores. Na forma decimal, multiplicamos como inteiros e contamos as casas decimais.</li>
+                                <li><strong>Divisão:</strong> Na forma de fração, multiplicamos a primeira pelo inverso da segunda. Na forma decimal, igualamos as casas decimais para eliminar a vírgula e dividimos.</li>
+                            </ul>
+                            <h3 class="subject-activity-title">Atividade Rápida 🧠</h3>
+                            <ol class="subject-activity-list">
+                                <li>Represente o número -2,5 como uma fração irredutível.</li>
+                                <li>Calcule: (-3/5) + (1/2) = ?</li>
+                                <li>Quanto é 0,2 multiplicado por -1,5?</li>
+                                <li>Transforme a dízima periódica 0,444... em fração geratriz. (Dica: chame de x, multiplique por 10, subtraia...)</li>
+                            </ol>`;
+                    } else if (subjectId === "7-equacoes1") {
+                        contentArea.innerHTML = `
+                            <h3 class="subject-content-title">Resumo Detalhado: Equações de 1º Grau</h3>
+                            <p class="subject-content-text">Uma <strong>equação</strong> é uma igualdade matemática que contém pelo menos uma letra (chamada incógnita ou variável) que representa um valor desconhecido.</p>
+                            <p class="subject-content-text">Uma <strong>equação de 1º grau</strong> com uma incógnita 'x' é aquela que pode ser escrita na forma geral <span class="formula">ax + b = c</span> ou, mais comumente, <span class="formula">ax + b = 0</span> (após reorganização), onde 'a' e 'b' (e 'c') são números conhecidos (coeficientes) e 'a' deve ser diferente de zero (a ≠ 0). O "1º grau" refere-se ao fato de que o maior expoente da incógnita é 1.</p>
+                            <p class="subject-content-text"><strong>Resolver uma equação</strong> significa encontrar o valor da incógnita que torna a igualdade verdadeira. Esse valor é chamado de raiz ou solução da equação.</p>
+                            <p class="subject-content-text"><strong>Princípio da Equivalência (ou da Balança):</strong> Para resolver, usamos operações inversas para isolar a incógnita de um lado da igualdade. Tudo o que fizermos de um lado da equação, devemos fazer igual do outro lado para manter a "balança" equilibrada (a igualdade).</p>
+                            <ul class="subject-content-list">
+                                <li>Se um termo está somando, ele passa para o outro lado subtraindo (e vice-versa).</li>
+                                <li>Se um termo está multiplicando, ele passa para o outro lado dividindo (e vice-versa).</li>
+                            </ul>
+                            <p class="subject-content-text"><strong>Exemplo Passo a Passo:</strong> Resolver <span class="formula">3x - 5 = 10</span></p>
+                            <ol class="list-decimal list-inside ml-4 subject-content-text">
+                                <li>Adicionar 5 aos dois lados: <span class="formula">3x - 5 + 5 = 10 + 5</span>  =>  <span class="formula">3x = 15</span></li>
+                                <li>Dividir os dois lados por 3: <span class="formula">3x / 3 = 15 / 3</span>  =>  <span class="formula">x = 5</span></li>
+                                <li>Solução: x = 5.</li>
+                            </ol>
+                             <img src="https://placehold.co/400x150/83C5BE/FFFFFF?text=Balança+Equilibrada+(Equação)" alt="Imagem de uma balança equilibrada representando uma equação" class="example-image">
+                            <h3 class="subject-activity-title">Atividade Rápida 🧠</h3>
+                            <ol class="subject-activity-list">
+                                <li>Resolva a equação: <span class="formula">2y + 7 = 1</span></li>
+                                <li>O triplo de um número menos 4 é igual a 11. Qual é esse número? (Primeiro, transforme a frase em uma equação!)</li>
+                                <li>Encontre o valor de 'm' na equação: <span class="formula">5(m - 1) = 2m + 7</span></li>
+                                <li>A idade de João é o dobro da idade de Maria. Juntos, eles têm 36 anos. Qual a idade de cada um? (Chame a idade de Maria de 'x').</li>
+                            </ol>`;
+                    } else if (subjectId === "7-inequacoes1") {
+                        contentArea.innerHTML = `
+                            <h3 class="subject-content-title">Resumo Detalhado: Inequações de 1º Grau</h3>
+                            <p class="subject-content-text">Uma <strong>inequação</strong> é uma sentença matemática que expressa uma desigualdade entre duas expressões. Em vez do sinal de igual (=) das equações, usamos os sinais de desigualdade:</p>
+                            <ul class="subject-content-list">
+                                <li><span class="formula">></span> (maior que)</li>
+                                <li><span class="formula"><</span> (menor que)</li>
+                                <li><span class="formula">≥</span> (maior ou igual a)</li>
+                                <li><span class="formula">≤</span> (menor ou igual a)</li>
+                            </ul>
+                            <p class="subject-content-text">Uma <strong>inequação de 1º grau</strong> com uma incógnita 'x' é aquela que, após simplificações, pode ser escrita em formas como <span class="formula">ax + b > 0</span>, <span class="formula">ax + b < 0</span>, etc., onde 'a' e 'b' são coeficientes e 'a' ≠ 0.</p>
+                            <p class="subject-content-text"><strong>Resolver uma inequação</strong> significa encontrar o conjunto de todos os valores da incógnita que tornam a desigualdade verdadeira.</p>
+                            <p class="subject-content-text"><strong>Princípios de Resolução (Semelhantes aos das Equações, com uma Ressalva):</strong></p>
+                            <ul class="subject-content-list">
+                                <li>Podemos adicionar ou subtrair o mesmo número de ambos os lados da desigualdade sem alterar seu sentido.</li>
+                                <li>Podemos multiplicar ou dividir ambos os lados da desigualdade pelo mesmo número <strong>positivo</strong> sem alterar seu sentido.</li>
+                                <li><strong>Ressalva Importante:</strong> Se multiplicarmos ou dividirmos ambos os lados da desigualdade por um número <strong>negativo</strong>, DEVEMOS <strong>inverter o sentido do sinal da desigualdade</strong>.</li>
+                            </ul>
+                            <p class="subject-content-text">Exemplo 1: <span class="formula">2x + 3 < 9</span>  =>  <span class="formula">2x < 9 - 3</span>  =>  <span class="formula">2x < 6</span>  =>  <span class="formula">x < 3</span>. (Solução: todos os números menores que 3).</p>
+                            <p class="subject-content-text">Exemplo 2 (com inversão): <span class="formula">-3x + 1 ≤ 7</span>  =>  <span class="formula">-3x ≤ 7 - 1</span>  =>  <span class="formula">-3x ≤ 6</span>. Agora, dividimos por -3 (negativo!), então invertemos o sinal: <span class="formula">x ≥ 6/(-3)</span>  =>  <span class="formula">x ≥ -2</span>.</p>
+                             <img src="https://placehold.co/400x100/83C5BE/FFFFFF?text=Reta+Numérica+com+Intervalo+(Inequação)" alt="Imagem de uma reta numérica mostrando um intervalo solução de uma inequação" class="example-image">
+                            <h3 class="subject-activity-title">Atividade Rápida 🧠</h3>
+                            <ol class="subject-activity-list">
+                                <li>Resolva a inequação: <span class="formula">y - 4 ≥ 2</span></li>
+                                <li>O dobro de um número mais 1 é maior que 7. Que valores esse número pode ter?</li>
+                                <li>Resolva: <span class="formula">10 - 5k < 0</span></li>
+                                <li>Quais números inteiros e positivos satisfazem a inequação <span class="formula">2x - 1 ≤ 5</span>?</li>
+                            </ol>`;
+                    } else if (subjectId === "7-razao-proporcao") {
+                        contentArea.innerHTML = `
+                            <h3 class="subject-content-title">Resumo Detalhado: Razão, Proporção e Regra de Três Simples</h3>
+                            <p class="subject-content-text"><strong>Razão:</strong> É o quociente (divisão) entre duas grandezas 'a' e 'b' (com b ≠ 0). Representa a relação comparativa entre elas. Pode ser escrita como <span class="formula">a/b</span>, <span class="formula">a : b</span> ou "a está para b".</p>
+                            <p class="subject-content-text">Ex: Se numa sala há 10 meninos e 20 meninas, a razão entre meninos e meninas é 10/20, que simplificando é 1/2 (um menino para cada duas meninas).</p>
+                            <p class="subject-content-text"><strong>Proporção:</strong> É a igualdade entre duas razões. Se <span class="formula">a/b = c/d</span>, dizemos que a, b, c e d formam, nessa ordem, uma proporção.</p>
+                            <p class="subject-content-text"><strong>Propriedade Fundamental das Proporções:</strong> Em toda proporção, o produto dos termos extremos é igual ao produto dos termos meios. Se <span class="formula">a/b = c/d</span>, então <span class="formula">a × d = b × c</span>. (A famosa "multiplicação em cruz").</p>
+                             <img src="https://placehold.co/300x150/83C5BE/FFFFFF?text=a/b+=+c/d+=>+ad+=+bc" alt="Propriedade Fundamental da Proporção" class="example-image">
+                            <p class="subject-content-text"><strong>Grandezas Diretamente Proporcionais:</strong> Duas grandezas são diretamente proporcionais quando, ao aumentar (ou diminuir) uma delas uma certa quantidade de vezes, a outra também aumenta (ou diminui) na mesma quantidade de vezes. A razão entre os valores correspondentes é constante.</p>
+                            <p class="subject-content-text"><strong>Grandezas Inversamente Proporcionais:</strong> Duas grandezas são inversamente proporcionais quando, ao aumentar (ou diminuir) uma delas uma certa quantidade de vezes, a outra diminui (ou aumenta) na mesma quantidade de vezes (na proporção inversa). O produto entre os valores correspondentes é constante.</p>
+                            <p class="subject-content-text"><strong>Regra de Três Simples:</strong> É um processo prático para resolver problemas que envolvem duas grandezas diretamente ou inversamente proporcionais, onde conhecemos três valores e queremos encontrar o quarto.</p>
+                            <ol class="list-decimal list-inside ml-4 subject-content-text">
+                                <li>Organize os dados em uma tabela, separando as grandezas.</li>
+                                <li>Verifique se as grandezas são direta ou inversamente proporcionais.</li>
+                                <li>Monte a proporção (se for inversa, inverta uma das razões) e resolva usando a propriedade fundamental.</li>
+                            </ol>
+                            <h3 class="subject-activity-title">Atividade Rápida 🧠</h3>
+                            <ol class="subject-activity-list">
+                                <li>Para fazer um bolo, uso 2 xícaras de farinha para 1 xícara de açúcar. Se eu quiser usar 3 xícaras de açúcar, quantas xícaras de farinha precisarei? (As grandezas são diretamente proporcionais?)</li>
+                                <li>Um carro a 60 km/h leva 2 horas para percorrer uma distância. Se ele aumentar a velocidade para 120 km/h, quanto tempo levará para percorrer a mesma distância? (As grandezas são diretamente ou inversamente proporcionais?)</li>
+                                <li>Se 5 operários constroem uma casa em 60 dias, quantos dias 10 operários levariam para construir a mesma casa, trabalhando no mesmo ritmo?</li>
+                            </ol>`;
+                    } else if (subjectId === "7-porcentagem") {
+                        contentArea.innerHTML = `
+                            <h3 class="subject-content-title">Resumo Detalhado: Porcentagem e Juros Simples</h3>
+                            <p class="subject-content-text"><strong>Porcentagem (%):</strong> A palavra "porcento" significa "por cem". Portanto, uma porcentagem é uma razão cujo denominador é 100. É uma forma de expressar uma proporção ou uma parte de um todo em relação a 100.</p>
+                            <p class="subject-content-text">Ex: <span class="formula">25%</span> significa 25 por 100, ou <span class="formula">25/100</span>, que é igual a <span class="formula">0,25</span> ou <span class="formula">1/4</span>.</p>
+                            <p class="subject-content-text"><strong>Cálculo de Porcentagem de um Valor:</strong> Para calcular X% de um valor Y, multiplicamos a forma decimal (ou fracionária) da porcentagem pelo valor Y.</p>
+                            <p class="subject-content-text">Ex: Calcular 30% de R$ 200,00.  30% = 0,30. Então, 0,30 × 200 = R$ 60,00.</p>
+                            <p class="subject-content-text"><strong>Acréscimos e Descontos:</strong></p>
+                            <ul class="subject-content-list">
+                                <li>Acréscimo de P%: Novo Valor = Valor Original × (1 + P/100).</li>
+                                <li>Desconto de P%: Novo Valor = Valor Original × (1 - P/100).</li>
+                            </ul>
+                             <img src="https://placehold.co/350x150/83C5BE/FFFFFF?text=Cálculo+de+Porcentagem" alt="Exemplo de cálculo de porcentagem" class="example-image">
+                            <p class="subject-content-text"><strong>Juros Simples:</strong> É uma forma de remuneração paga pelo uso de um dinheiro (capital) emprestado ou aplicado, por um determinado período, a uma taxa fixa calculada sempre sobre o capital inicial.</p>
+                            <p class="subject-content-text">Fórmula do Juro Simples: <span class="formula">J = C × i × t</span></p>
+                            <ul class="subject-content-list">
+                                <li><strong>J</strong> = Juros</li>
+                                <li><strong>C</strong> = Capital (valor inicial)</li>
+                                <li><strong>i</strong> = Taxa de juros (por período, na forma decimal)</li>
+                                <li><strong>t</strong> = Tempo (número de períodos, na mesma unidade da taxa)</li>
+                            </ul>
+                            <p class="subject-content-text">Montante (M) é a soma do Capital com os Juros: <span class="formula">M = C + J</span> ou <span class="formula">M = C × (1 + i × t)</span>.</p>
+                            <h3 class="subject-activity-title">Atividade Rápida 🧠</h3>
+                            <ol class="subject-activity-list">
+                                <li>Numa loja, uma TV de R$ 1500,00 está com 15% de desconto à vista. Qual o preço da TV à vista?</li>
+                                <li>Se um produto teve um aumento de 10% sobre seu preço de R$ 50,00, qual o novo preço?</li>
+                                <li>Calcule os juros simples produzidos por um capital de R$ 800,00 aplicado a uma taxa de 5% ao mês durante 4 meses. Qual o montante final?</li>
+                                <li>De 50 questões de uma prova, acertei 35. Qual foi minha porcentagem de acertos?</li>
+                            </ol>`;
+                    } else if (subjectId === "7-angulos") { 
+                         contentArea.innerHTML = `
+                            <h3 class="subject-content-title">Resumo Detalhado: Ângulos e suas classificações</h3>
+                            <p class="subject-content-text">Um <strong>ângulo</strong> é a figura geométrica formada por duas semirretas que têm a mesma origem. Essa origem comum é chamada de <strong>vértice</strong> do ângulo, e as semirretas são os <strong>lados</strong> do ângulo.</p>
+                            <p class="subject-content-text">A "abertura" entre os lados do ângulo é o que medimos, geralmente em <strong>graus (°)</strong>. Uma volta completa tem 360°.</p>
+                            <img src="https://placehold.co/300x200/83C5BE/FFFFFF?text=Ângulo+com+Vértice+e+Lados" alt="Imagem de um ângulo mostrando vértice e lados" class="example-image">
+                            <p class="subject-content-text"><strong>Classificação dos Ângulos quanto à Medida:</strong></p>
+                            <ul class="subject-content-list">
+                                <li><strong>Ângulo Agudo:</strong> Sua medida é maior que 0° e menor que 90°. (Pense numa fatia fina de pizza!)</li>
+                                <li><strong>Ângulo Reto:</strong> Sua medida é exatamente 90°. (É o ângulo dos cantos de um quadrado ou de uma folha de papel. Frequentemente indicado com um pequeno quadrado no vértice.)</li>
+                                <li><strong>Ângulo Obtuso:</strong> Sua medida é maior que 90° e menor que 180°. (Uma fatia de pizza mais aberta que o ângulo reto!)</li>
+                                <li><strong>Ângulo Raso (ou de Meia Volta):</strong> Sua medida é exatamente 180°. Seus lados formam uma linha reta.</li>
+                                <li><strong>Ângulo de Uma Volta (ou Pleno):</strong> Sua medida é exatamente 360°. Representa uma volta completa.</li>
+                                <li><strong>Ângulo Nulo:</strong> Sua medida é 0°. Os lados coincidem.</li>
+                            </ul>
+                            <img src="https://placehold.co/400x150/83C5BE/FFFFFF?text=Tipos+de+Ângulos+(Agudo,+Reto,+Obtuso)" alt="Imagem mostrando exemplos de ângulos agudo, reto e obtuso" class="example-image">
+                            <h3 class="subject-activity-title">Atividade Rápida 🧠</h3>
+                            <ol class="subject-activity-list">
+                                <li>Um ângulo de 150° é classificado como quê?</li>
+                                <li>Se você der 1/4 de uma volta completa, quantos graus você girou? Que tipo de ângulo é esse?</li>
+                                <li>Os ponteiros de um relógio às 6 horas formam que tipo de ângulo? E às 9 horas?</li>
+                                <li>Desenhe um ângulo agudo e um ângulo obtuso. Tente estimar suas medidas em graus.</li>
+                            </ol>`;
+                    } else if (subjectId === "7-poligonos") {
+                        contentArea.innerHTML = `
+                            <h3 class="subject-content-title">Resumo Detalhado: Triângulos e Polígonos</h3>
+                            <p class="subject-content-text"><strong>Polígonos</strong> são figuras geométricas planas e fechadas, formadas por segmentos de reta que são seus lados. Os pontos onde os lados se encontram são os vértices, e os ângulos formados pelos lados são os ângulos internos.</p>
+                            <p class="subject-content-text">Os polígonos são nomeados de acordo com o número de lados (e, consequentemente, de ângulos e vértices):</p>
+                            <ul class="subject-content-list">
+                                <li>3 lados: Triângulo</li>
+                                <li>4 lados: Quadrilátero</li>
+                                <li>5 lados: Pentágono</li>
+                                <li>6 lados: Hexágono ...e assim por diante.</li>
+                            </ul>
+                            <img src="https://placehold.co/400x150/83C5BE/FFFFFF?text=Exemplos+de+Polígonos" alt="Imagem com exemplos de diferentes polígonos" class="example-image">
+                            <p class="subject-content-text"><strong>Triângulos:</strong> São polígonos de 3 lados. São figuras muito importantes na geometria!</p>
+                            <p class="subject-content-text"><strong>Classificação dos Triângulos:</strong></p>
+                            <ul class="subject-content-list">
+                                <li><strong>Quanto aos Lados:</strong>
+                                    <ul class="list-[circle] list-inside ml-4">
+                                        <li><strong>Equilátero:</strong> Todos os 3 lados têm a mesma medida (e os 3 ângulos também são iguais, medindo 60° cada).</li>
+                                        <li><strong>Isósceles:</strong> Pelo menos 2 lados têm a mesma medida (e os ângulos opostos a esses lados também são iguais).</li>
+                                        <li><strong>Escaleno:</strong> Todos os 3 lados têm medidas diferentes (e os 3 ângulos também são diferentes).</li>
+                                    </ul>
+                                </li>
+                                 <img src="https://placehold.co/400x120/83C5BE/FFFFFF?text=Triângulos+quanto+aos+Lados" alt="Imagem mostrando triângulos equilátero, isósceles e escaleno" class="example-image">
+                                <li><strong>Quanto aos Ângulos Internos:</strong>
+                                    <ul class="list-[circle] list-inside ml-4">
+                                        <li><strong>Acutângulo:</strong> Todos os 3 ângulos internos são agudos (menores que 90°).</li>
+                                        <li><strong>Retângulo:</strong> Possui 1 ângulo interno reto (igual a 90°). O lado oposto ao ângulo reto é a hipotenusa, e os outros dois são os catetos.</li>
+                                        <li><strong>Obtusângulo:</strong> Possui 1 ângulo interno obtuso (maior que 90°).</li>
+                                    </ul>
+                                </li>
+                                 <img src="https://placehold.co/400x120/83C5BE/FFFFFF?text=Triângulos+quanto+aos+Ângulos" alt="Imagem mostrando triângulos acutângulo, retângulo e obtusângulo" class="example-image">
+                            </ul>
+                            <p class="subject-content-text"><strong>Soma dos Ângulos Internos de um Triângulo:</strong> A soma das medidas dos três ângulos internos de QUALQUER triângulo é sempre igual a <strong>180°</strong>.</p>
+                            <h3 class="subject-activity-title">Atividade Rápida 🧠</h3>
+                            <ol class="subject-activity-list">
+                                <li>Um triângulo pode ter dois ângulos retos? Por quê?</li>
+                                <li>Se um triângulo isósceles tem um ângulo da base medindo 70°, quanto medem os outros dois ângulos?</li>
+                                <li>Desenhe um polígono de 5 lados. Como ele se chama?</li>
+                                <li>Um triângulo tem ângulos medindo 40° e 60°. Qual a medida do terceiro ângulo? Que tipo de triângulo ele é quanto aos ângulos?</li>
+                            </ol>`;
+                    
+                    // 8º ANO CONTEÚDO (já preenchido anteriormente, mantido para consistência)
+                    } else if (subjectId === "8-reais") {
+                        contentArea.innerHTML = `
+                            <h3 class="subject-content-title">Resumo Detalhado: Números Reais</h3>
+                            <p class="subject-content-text">O conjunto dos <strong>Números Reais</strong> (representado por ℝ) é a união do conjunto dos números Racionais (ℚ) com o conjunto dos números Irracionais (I). Ou seja, ℝ = ℚ ∪ I.</p>
+                            <ul class="subject-content-list">
+                                <li><strong>Números Racionais (ℚ):</strong> Todos que podem ser escritos como fração a/b (com a, b inteiros e b≠0). Incluem:
+                                    <ul class="list-[circle] list-inside ml-4">
+                                        <li>Naturais (ℕ): {0, 1, 2, ...}</li>
+                                        <li>Inteiros (ℤ): {..., -2, -1, 0, 1, 2, ...}</li>
+                                        <li>Decimais Exatos: Ex: 0,5; 2,75</li>
+                                        <li>Dízimas Periódicas: Ex: 0,333...; 1,2727...</li>
+                                    </ul>
+                                </li>
+                                <li><strong>Números Irracionais (I):</strong> São aqueles que NÃO podem ser escritos como uma fração de dois inteiros. Suas representações decimais são infinitas e não periódicas.
+                                    <ul class="list-[circle] list-inside ml-4">
+                                        <li>Raízes não exatas: Ex: √2 ≈ 1,41421356...; √3 ≈ 1,7320508...</li>
+                                        <li>Número Pi (π): π ≈ 3,14159265... (relação entre o comprimento da circunferência e seu diâmetro)</li>
+                                        <li>Outros números como o número de Euler (e).</li>
+                                    </ul>
+                                </li>
+                            </ul>
+                            <p class="subject-content-text"><strong>Reta Real:</strong> Cada ponto da reta numérica corresponde a um único número real, e cada número real corresponde a um único ponto na reta. A reta real é "completa", sem "buracos".</p>
+                             <img src="https://placehold.co/400x150/83C5BE/FFFFFF?text=Reta+Numérica+com+Reais" alt="Imagem da Reta Numérica com Números Reais" class="example-image">
+                            <p class="caption">A reta real preenchida com racionais e irracionais.</p>
+                            <h3 class="subject-activity-title">Atividade Rápida 🧠</h3>
+                            <ol class="subject-activity-list">
+                                <li>Classifique os seguintes números como Racional (Q) ou Irracional (I): a) -7 b) 3/5 c) √9 d) √10 e) 0,121212...</li>
+                                <li>Dê um exemplo de um número que seja Real, mas não Racional.</li>
+                                <li>É verdade que todo número Natural também é Real? Justifique.</li>
+                                <li>Entre quais dois números inteiros consecutivos está localizado o número √15?</li>
+                            </ol>`;
+                    } else if (subjectId === "8-pot-rad") {
+                        contentArea.innerHTML = `
+                            <h3 class="subject-content-title">Resumo Detalhado: Potenciação e Radiciação (com Reais)</h3>
+                            <p class="subject-content-text"><strong>Potenciação:</strong> É uma multiplicação de fatores iguais. <span class="formula">a<sup>n</sup> = a × a × ... × a</span> (n vezes). 'a' é a base, 'n' é o expoente.</p>
+                            <ul class="subject-content-list">
+                                <li>Expoente zero: <span class="formula">a<sup>0</sup> = 1</span> (para a ≠ 0).</li>
+                                <li>Expoente negativo: <span class="formula">a<sup>-n</sup> = 1/a<sup>n</sup></span> (para a ≠ 0). Ex: 2<sup>-3</sup> = 1/2<sup>3</sup> = 1/8.</li>
+                                <li>Propriedades importantes:
+                                    <ul class="list-[circle] list-inside ml-4">
+                                        <li>Produto de potências de mesma base: <span class="formula">a<sup>m</sup> × a<sup>n</sup> = a<sup>m+n</sup></span> (soma expoentes).</li>
+                                        <li>Divisão de potências de mesma base: <span class="formula">a<sup>m</sup> ÷ a<sup>n</sup> = a<sup>m-n</sup></span> (subtrai expoentes).</li>
+                                        <li>Potência de potência: <span class="formula">(a<sup>m</sup>)<sup>n</sup> = a<sup>m×n</sup></span> (multiplica expoentes).</li>
+                                        <li>Potência de um produto: <span class="formula">(a × b)<sup>n</sup> = a<sup>n</sup> × b<sup>n</sup></span>.</li>
+                                    </ul>
+                                </li>
+                            </ul>
+                            <p class="subject-content-text"><strong>Radiciação:</strong> É a operação inversa da potenciação. <span class="formula"><sup>n</sup>√a = b</span> se <span class="formula">b<sup>n</sup> = a</span>. 'n' é o índice, 'a' é o radicando.</p>
+                            <ul class="subject-content-list">
+                                <li>Raiz quadrada: índice 2 (geralmente omitido). Ex: √9 = 3 pois 3² = 9.</li>
+                                <li>Raiz cúbica: índice 3. Ex: ³√8 = 2 pois 2³ = 8.</li>
+                                <li>Não existe raiz real de índice par para radicando negativo (Ex: √-4 não é real).</li>
+                                <li>Propriedades: simplificação de radicais (extrair fatores), operações com radicais (multiplicação e divisão de radicais de mesmo índice).</li>
+                            </ul>
+                             <img src="https://placehold.co/300x150/83C5BE/FFFFFF?text=Exemplo+Potência+e+Raiz" alt="Exemplo visual de Potenciação e Radiciação" class="example-image">
+                            <h3 class="subject-activity-title">Atividade Rápida 🧠</h3>
+                            <ol class="subject-activity-list">
+                                <li>Calcule: (-2)<sup>3</sup> = ?</li>
+                                <li>Quanto é 5<sup>-2</sup>?</li>
+                                <li>Simplifique o radical: √72 (Dica: fatore 72)</li>
+                                <li>Calcule: (3<sup>2</sup>)<sup>3</sup> usando a propriedade da potência de potência.</li>
+                            </ol>`;
+                    } else if (subjectId === "8-calculo-alg") {
+                        contentArea.innerHTML = `
+                            <h3 class="subject-content-title">Resumo Detalhado: Cálculo Algébrico - Monômios e Polinômios</h3>
+                            <p class="subject-content-text"><strong>Expressões Algébricas:</strong> São combinações de números (coeficientes), letras (variáveis que representam números desconhecidos ou genéricos) e operações matemáticas.</p>
+                            <p class="subject-content-text"><strong>Monômio:</strong> É um termo algébrico que consiste em um número, uma variável, ou um produto de números e variáveis com expoentes inteiros não negativos. Ex: <span class="formula">5</span>, <span class="formula">x</span>, <span class="formula">3y<sup>2</sup></span>, <span class="formula">-7ab</span>.</p>
+                            <ul class="subject-content-list">
+                                <li><strong>Partes de um Monômio:</strong>
+                                    <ul class="list-[circle] list-inside ml-4">
+                                        <li>Coeficiente: A parte numérica. No monômio <span class="formula">-7ab</span>, o coeficiente é -7.</li>
+                                        <li>Parte Literal: As variáveis com seus expoentes. No monômio <span class="formula">-7ab</span>, a parte literal é <span class="formula">ab</span> (ou a<sup>1</sup>b<sup>1</sup>).</li>
+                                    </ul>
+                                </li>
+                                <li><strong>Grau de um Monômio:</strong> É a soma dos expoentes de todas as variáveis na parte literal. O grau de <span class="formula">3x<sup>2</sup>y<sup>3</sup></span> é 2+3 = 5.</li>
+                                <li><strong>Monômios Semelhantes:</strong> São aqueles que possuem a mesma parte literal. Ex: <span class="formula">2xy</span> e <span class="formula">-5xy</span> são semelhantes.</li>
+                            </ul>
+                            <p class="subject-content-text"><strong>Polinômio:</strong> É uma expressão algébrica formada pela soma (ou subtração) de monômios. Cada monômio é um termo do polinômio. Ex: <span class="formula">3x<sup>2</sup> + 2x - 5</span> é um polinômio com três termos.</p>
+                            <ul class="subject-content-list">
+                                <li><strong>Grau de um Polinômio:</strong> É o maior grau entre todos os seus termos (monômios). O grau de <span class="formula">4x<sup>3</sup>y - 2x<sup>2</sup>y<sup>2</sup> + 7y</span> é 4 (do termo <span class="formula">4x<sup>3</sup>y</span>).</li>
+                                <li><strong>Operações com Polinômios:</strong>
+                                    <ul class="list-[circle] list-inside ml-4">
+                                        <li><strong>Adição e Subtração:</strong> Somamos ou subtraímos os coeficientes dos termos semelhantes.</li>
+                                        <li><strong>Multiplicação:</strong> Usamos a propriedade distributiva (multiplicamos cada termo de um polinômio por cada termo do outro).</li>
+                                    </ul>
+                                </li>
+                            </ul>
+                            <h3 class="subject-activity-title">Atividade Rápida 🧠</h3>
+                            <ol class="subject-activity-list">
+                                <li>Qual o coeficiente e a parte literal do monômio <span class="formula">-4xy<sup>3</sup></span>? Qual o seu grau?</li>
+                                <li>Some os polinômios: <span class="formula">(2x + 3y - z) + (x - y + 2z)</span></li>
+                                <li>Multiplique: <span class="formula">3a × (2a + b - 1)</span></li>
+                                <li>Qual o grau do polinômio <span class="formula">5x<sup>4</sup> - 7x<sup>2</sup>y<sup>3</sup> + 2y</span>?</li>
+                            </ol>`;
+                    } else if (subjectId === "8-prod-fat") {
+                        contentArea.innerHTML = `
+                            <h3 class="subject-content-title">Resumo Detalhado: Produtos Notáveis e Fatoração</h3>
+                            <p class="subject-content-text"><strong>Produtos Notáveis</strong> são certas multiplicações de polinômios que aparecem com tanta frequência que têm fórmulas "prontas" para agilizar os cálculos.</p>
+                            <ul class="subject-content-list">
+                                <li><strong>Quadrado da Soma de Dois Termos:</strong> <span class="formula">(a + b)<sup>2</sup> = a<sup>2</sup> + 2ab + b<sup>2</sup></span><br>(O quadrado do primeiro, mais duas vezes o primeiro pelo segundo, mais o quadrado do segundo).</li>
+                                <li><strong>Quadrado da Diferença de Dois Termos:</strong> <span class="formula">(a - b)<sup>2</sup> = a<sup>2</sup> - 2ab + b<sup>2</sup></span><br>(O quadrado do primeiro, menos duas vezes o primeiro pelo segundo, mais o quadrado do segundo).</li>
+                                <li><strong>Produto da Soma pela Diferença de Dois Termos:</strong> <span class="formula">(a + b)(a - b) = a<sup>2</sup> - b<sup>2</sup></span><br>(O quadrado do primeiro menos o quadrado do segundo).</li>
+                            </ul>
+                             <img src="https://placehold.co/400x100/83C5BE/FFFFFF?text=(a+b)²+%3D+a²+%2B+2ab+%2B+b²" alt="Fórmula do Quadrado da Soma" class="example-image">
+                            <p class="subject-content-text"><strong>Fatoração</strong> é o processo inverso dos produtos notáveis e da propriedade distributiva. É transformar uma soma ou diferença de termos em um produto de fatores.</p>
+                            <ul class="subject-content-list">
+                                <li><strong>Fator Comum em Evidência:</strong> Procuramos o maior fator (número e/ou letra) comum a todos os termos e o colocamos em evidência. Ex: <span class="formula">ax + ay = a(x + y)</span>.</li>
+                                <li><strong>Agrupamento:</strong> Usado quando não há um fator comum a todos os termos, mas podemos agrupar termos que tenham fatores comuns. Ex: <span class="formula">ax + ay + bx + by = a(x+y) + b(x+y) = (a+b)(x+y)</span>.</li>
+                                <li><strong>Trinômio Quadrado Perfeito (TQP):</strong> É a forma fatorada do quadrado da soma ou da diferença. Se temos <span class="formula">a<sup>2</sup> + 2ab + b<sup>2</sup></span>, fatoramos para <span class="formula">(a+b)<sup>2</sup></span>. Se temos <span class="formula">a<sup>2</sup> - 2ab + b<sup>2</sup></span>, fatoramos para <span class="formula">(a-b)<sup>2</sup></span>.</li>
+                                <li><strong>Diferença de Dois Quadrados:</strong> Se temos <span class="formula">a<sup>2</sup> - b<sup>2</sup></span>, fatoramos para <span class="formula">(a+b)(a-b)</span>.</li>
+                            </ul>
+                            <h3 class="subject-activity-title">Atividade Rápida 🧠</h3>
+                            <ol class="subject-activity-list">
+                                <li>Desenvolva o produto notável: <span class="formula">(x + 5)<sup>2</sup></span></li>
+                                <li>Desenvolva o produto notável: <span class="formula">(3y - 2)(3y + 2)</span></li>
+                                <li>Fatore a expressão: <span class="formula">7m + 7n - 7p</span></li>
+                                <li>Fatore a expressão: <span class="formula">x<sup>2</sup> - 16</span></li>
+                            </ol>`;
+                    } else if (subjectId === "8-sistemas-eq1") {
+                        contentArea.innerHTML = `
+                            <h3 class="subject-content-title">Resumo Detalhado: Sistemas de Equações de 1º Grau com Duas Incógnitas</h3>
+                            <p class="subject-content-text">Um <strong>sistema de equações de 1º grau com duas incógnitas</strong> é um conjunto de (geralmente) duas equações que possuem as mesmas duas variáveis (por exemplo, x e y). O objetivo é encontrar um par de valores (um para x e um para y) que satisfaça AMBAS as equações ao mesmo tempo.</p>
+                            <p class="subject-content-text">Exemplo de sistema: <span class="formula">{ x + y = 7;  x - y = 1 }</span></p>
+                            <p class="subject-content-text"><strong>Métodos de Resolução:</strong></p>
+                            <ul class="subject-content-list">
+                                <li><strong>Método da Substituição:</strong>
+                                    <ol class="list-decimal list-inside ml-4">
+                                        <li>Escolha uma das equações e isole uma das incógnitas (deixe-a sozinha de um lado da igualdade).</li>
+                                        <li>Substitua a expressão encontrada para essa incógnita na OUTRA equação.</li>
+                                        <li>Resolva a nova equação (que terá apenas uma incógnita).</li>
+                                        <li>Substitua o valor encontrado de volta em uma das equações originais (ou na expressão isolada) para achar o valor da outra incógnita.</li>
+                                    </ol>
+                                </li>
+                                <li><strong>Método da Adição:</strong>
+                                    <ol class="list-decimal list-inside ml-4">
+                                        <li>Prepare as equações para que os coeficientes de uma das incógnitas sejam opostos (ex: +2y e -2y). Às vezes, é preciso multiplicar uma ou ambas as equações por um número para conseguir isso.</li>
+                                        <li>Some as duas equações membro a membro. Uma das incógnitas deverá ser eliminada.</li>
+                                        <li>Resolva a equação resultante (com apenas uma incógnita).</li>
+                                        <li>Substitua o valor encontrado em uma das equações originais para achar o valor da outra incógnita.</li>
+                                    </ol>
+                                </li>
+                            </ul>
+                             <img src="https://placehold.co/400x200/83C5BE/FFFFFF?text=Exemplo+de+Sistema+de+Equações" alt="Exemplo visual de um Sistema de Equações" class="example-image">
+                            <h3 class="subject-activity-title">Atividade Rápida 🧠</h3>
+                            <ol class="subject-activity-list">
+                                <li>Resolva o sistema pelo método da substituição: <span class="formula">{ x + y = 10; y = x + 2 }</span></li>
+                                <li>Resolva o sistema pelo método da adição: <span class="formula">{ 2a + b = 8; a - b = 1 }</span></li>
+                                <li>A soma de dois números é 15. Um número é o dobro do outro. Quais são esses números? (Dica: Chame os números de x e y e monte o sistema!)</li>
+                            </ol>`;
+                    } else if (subjectId === "8-pitagoras") {
+                        contentArea.innerHTML = `
+                            <h3 class="subject-content-title">Resumo Detalhado: Teorema de Pitágoras</h3>
+                            <p class="subject-content-text">O <strong>Teorema de Pitágoras</strong> é uma das relações mais famosas e úteis da matemática, e aplica-se exclusivamente a <strong>triângulos retângulos</strong> (aqueles que possuem um ângulo interno de 90°, chamado ângulo reto).</p>
+                            <p class="subject-content-text">Os lados de um triângulo retângulo recebem nomes especiais:</p>
+                            <ul class="subject-content-list">
+                                <li><strong>Hipotenusa:</strong> É o lado oposto ao ângulo reto. É sempre o maior lado do triângulo retângulo.</li>
+                                <li><strong>Catetos:</strong> São os dois lados que formam o ângulo reto.</li>
+                            </ul>
+                            <img src="https://placehold.co/350x200/83C5BE/FFFFFF?text=Triângulo+Retângulo+(Hipotenusa+e+Catetos)" alt="Imagem de um Triângulo Retângulo indicando Hipotenusa e Catetos" class="example-image">
+                            <p class="subject-content-text">O teorema estabelece que: "Em qualquer triângulo retângulo, o quadrado da medida da hipotenusa é igual à soma dos quadrados das medidas dos catetos."</p>
+                            <p class="subject-content-text">Se chamarmos a hipotenusa de 'a' e os catetos de 'b' e 'c', a fórmula é: <span class="formula">a<sup>2</sup> = b<sup>2</sup> + c<sup>2</sup></span></p>
+                            <p class="subject-content-text">Este teorema permite encontrar a medida de um dos lados de um triângulo retângulo se conhecermos as medidas dos outros dois.</p>
+                            <h3 class="subject-activity-title">Atividade Rápida 🧠</h3>
+                            <ol class="subject-activity-list">
+                                <li>Os catetos de um triângulo retângulo medem 6 cm e 8 cm. Qual é a medida da hipotenusa?</li>
+                                <li>Em um triângulo retângulo, a hipotenusa mede 13 m e um dos catetos mede 5 m. Qual a medida do outro cateto?</li>
+                                <li>Uma escada de 5 metros de comprimento está apoiada em uma parede. O pé da escada está a 3 metros de distância da base da parede. Qual a altura que a escada alcança na parede? (Dica: Visualize o triângulo retângulo formado!)</li>
+                            </ol>`;
+                    } else if (subjectId === "8-areas") {
+                        contentArea.innerHTML = `
+                            <h3 class="subject-content-title">Resumo Detalhado: Áreas de Figuras Planas (aprofundamento)</h3>
+                            <p class="subject-content-text">A <strong>área</strong> de uma figura plana é a medida da superfície que ela ocupa no plano. Cada figura tem uma fórmula específica para o cálculo de sua área.</p>
+                            <ul class="subject-content-list">
+                                <li><strong>Retângulo:</strong> Área = base × altura (<span class="formula">A = b × h</span>)</li>
+                                <li><strong>Quadrado:</strong> Área = lado × lado = lado<sup>2</sup> (<span class="formula">A = l<sup>2</sup></span>)</li>
+                                <li><strong>Paralelogramo:</strong> Área = base × altura (<span class="formula">A = b × h</span>) (A altura é a distância perpendicular entre a base e o lado oposto).</li>
+                                 <img src="https://placehold.co/300x150/83C5BE/FFFFFF?text=Área+do+Paralelogramo" alt="Imagem ilustrando a área de um paralelogramo" class="example-image">
+                                <li><strong>Triângulo:</strong> Área = (base × altura) / 2 (<span class="formula">A = (b × h) / 2</span>) (A altura é a distância perpendicular da base ao vértice oposto).</li>
+                                 <img src="https://placehold.co/300x150/83C5BE/FFFFFF?text=Área+do+Triângulo" alt="Imagem ilustrando a área de um triângulo" class="example-image">
+                                <li><strong>Trapézio:</strong> Área = [(Base maior + Base menor) × altura] / 2 (<span class="formula">A = ((B + b) × h) / 2</span>) (B é a base maior, b é a base menor).</li>
+                                 <img src="https://placehold.co/300x150/83C5BE/FFFFFF?text=Área+do+Trapézio" alt="Imagem ilustrando a área de um trapézio" class="example-image">
+                                <li><strong>Losango:</strong> Área = (Diagonal maior × Diagonal menor) / 2 (<span class="formula">A = (D × d) / 2</span>).</li>
+                                <li><strong>Círculo:</strong> Área = π × raio<sup>2</sup> (<span class="formula">A = πr<sup>2</sup></span>), onde π (pi) é uma constante aproximadamente igual a 3,14159.</li>
+                            </ul>
+                            <h3 class="subject-activity-title">Atividade Rápida 🧠</h3>
+                            <ol class="subject-activity-list">
+                                <li>Qual a área de um triângulo com base de 12 cm e altura de 7 cm?</li>
+                                <li>Um trapézio tem bases medindo 10m e 6m, e sua altura é de 5m. Qual é a sua área?</li>
+                                <li>Calcule a área de um círculo com raio de 4 cm (use π = 3,14).</li>
+                                <li>Se a área de um quadrado é 49 m<sup>2</sup>, qual a medida do seu lado?</li>
+                            </ol>`;
+                    } else if (subjectId === "8-circunferencia") {
+                        contentArea.innerHTML = `
+                            <h3 class="subject-content-title">Resumo Detalhado: Circunferência e Círculo (comprimento e área)</h3>
+                            <p class="subject-content-text"><strong>Circunferência:</strong> É uma linha curva fechada onde todos os pontos estão à mesma distância de um ponto central chamado <strong>centro</strong>. Pense na borda de uma moeda.</p>
+                            <p class="subject-content-text"><strong>Círculo:</strong> É a região plana delimitada por uma circunferência, incluindo a própria circunferência e toda a sua área interna. Pense na moeda inteira.</p>
+                             <img src="https://placehold.co/350x200/83C5BE/FFFFFF?text=Circunferência+vs+Círculo" alt="Imagem diferenciando Circunferência e Círculo" class="example-image">
+                            <p class="subject-content-text"><strong>Elementos Importantes:</strong></p>
+                            <ul class="subject-content-list">
+                                <li><strong>Raio (r):</strong> É a distância do centro até qualquer ponto da circunferência.</li>
+                                <li><strong>Diâmetro (d):</strong> É um segmento de reta que passa pelo centro e une dois pontos opostos da circunferência. O diâmetro é o dobro do raio (<span class="formula">d = 2r</span>).</li>
+                                <li><strong>Corda:</strong> Qualquer segmento de reta que une dois pontos da circunferência. O diâmetro é a maior corda possível.</li>
+                            </ul>
+                            <p class="subject-content-text"><strong>Comprimento da Circunferência (Perímetro do Círculo):</strong> É a medida do contorno da circunferência. A fórmula é: <span class="formula">C = 2 × π × r</span> ou <span class="formula">C = π × d</span>. Onde π (pi) é uma constante aproximadamente igual a 3,14 ou 22/7.</p>
+                            <p class="subject-content-text"><strong>Área do Círculo:</strong> É a medida da superfície interna do círculo. A fórmula é: <span class="formula">A = π × r<sup>2</sup></span>.</p>
+                            <h3 class="subject-activity-title">Atividade Rápida 🧠</h3>
+                            <ol class="subject-activity-list">
+                                <li>Se o raio de uma roda de bicicleta é 30 cm, qual o seu diâmetro?</li>
+                                <li>Calcule o comprimento (perímetro) de uma praça circular com raio de 20 metros (use π = 3,14).</li>
+                                <li>Qual a área de uma pizza que tem um raio de 15 cm (use π = 3,14)?</li>
+                                <li>O comprimento de uma pista de corrida circular é de 628 metros. Qual é o raio aproximado dessa pista (use π = 3,14)?</li>
+                            </ol>`;
+                    } else if (subjectId === "8-estatistica") {
+                        contentArea.innerHTML = `
+                            <h3 class="subject-content-title">Resumo Detalhado: Noções de Estatística e Probabilidade</h3>
+                            <p class="subject-content-text"><strong>Estatística</strong> é a parte da matemática que nos ajuda a coletar, organizar, analisar e interpretar dados para entendermos melhor situações e tomarmos decisões.</p>
+                            <ul class="subject-content-list">
+                                <li><strong>População e Amostra:</strong> População é o grupo completo que queremos estudar (ex: todos os alunos de uma escola). Amostra é uma parte menor e representativa dessa população (ex: alguns alunos de cada turma).</li>
+                                <li><strong>Coleta de Dados:</strong> Pode ser feita por questionários, observações, experimentos.</li>
+                                <li><strong>Organização de Dados:</strong> Usamos tabelas (com linhas e colunas) para organizar os dados. Tabelas de frequência mostram quantas vezes cada valor aparece.</li>
+                                <li><strong>Representação Gráfica:</strong> Gráficos ajudam a visualizar os dados. Tipos comuns:
+                                    <ul class="list-[circle] list-inside ml-4">
+                                        <li>Gráfico de Barras/Colunas: Compara quantidades.</li>
+                                        <li>Gráfico de Setores (Pizza): Mostra a proporção de cada parte em relação ao todo.</li>
+                                        <li>Gráfico de Linhas: Mostra a evolução de algo ao longo do tempo.</li>
+                                    </ul>
+                                </li>
+                                 <img src="https://placehold.co/400x200/83C5BE/FFFFFF?text=Exemplos+de+Gráficos" alt="Imagem com exemplos de gráficos estatísticos" class="example-image">
+                                <li><strong>Medidas de Tendência Central:</strong>
+                                    <ul class="list-[circle] list-inside ml-4">
+                                        <li><strong>Média Aritmética:</strong> Soma de todos os valores dividida pelo número de valores.</li>
+                                        <li><strong>Moda (Mo):</strong> O valor que aparece com maior frequência.</li>
+                                        <li><strong>Mediana (Md):</strong> O valor central de um conjunto de dados ordenados. Se houver dois valores centrais, é a média deles.</li>
+                                    </ul>
+                                </li>
+                            </ul>
+                            <p class="subject-content-text"><strong>Probabilidade</strong> é o estudo das chances de um determinado evento acontecer. É um número entre 0 (impossível) e 1 (certo), ou entre 0% e 100%.</p>
+                            <p class="subject-content-text">Fórmula básica: <span class="formula">P(evento) = (Número de resultados favoráveis) / (Número total de resultados possíveis)</span>.</p>
+                            <h3 class="subject-activity-title">Atividade Rápida 🧠</h3>
+                            <ol class="subject-activity-list">
+                                <li>As idades de 5 amigos são: 12, 13, 13, 14, 13. Qual a média, a moda e a mediana dessas idades?</li>
+                                <li>Ao lançar um dado comum de 6 faces, qual a probabilidade de sair um número par?</li>
+                                <li>Numa caixa há 4 bolas azuis e 6 bolas vermelhas. Qual a probabilidade de tirar uma bola vermelha ao acaso?</li>
+                                <li>Se a previsão do tempo diz que há 70% de chance de chover, qual a chance de NÃO chover?</li>
+                            </ol>`;
+                    
+                    // 9º ANO CONTEÚDO (já preenchido anteriormente, mantido para consistência)
+                    } else if (subjectId === "9-pot-rad-rev") {
+                        contentArea.innerHTML = `
+                            <h3 class="subject-content-title">Resumo: Potenciação e Radiciação (revisão e propriedades)</h3>
+                            <p class="subject-content-text">Revisaremos as operações de potenciação e radiciação, agora com foco em suas propriedades e aplicações mais aprofundadas, incluindo expoentes fracionários e racionalização de denominadores.</p>
+                            <p class="subject-content-text"><strong>Propriedades da Potenciação (Revisão):</strong></p>
+                            <ul class="subject-content-list">
+                                <li><span class="formula">a<sup>m</sup> ⋅ a<sup>n</sup> = a<sup>m+n</sup></span> (Produto de potências de mesma base)</li>
+                                <li><span class="formula">a<sup>m</sup> ÷ a<sup>n</sup> = a<sup>m-n</sup></span> (Quociente de potências de mesma base)</li>
+                                <li><span class="formula">(a<sup>m</sup>)<sup>n</sup> = a<sup>m⋅n</sup></span> (Potência de potência)</li>
+                                <li><span class="formula">(a ⋅ b)<sup>n</sup> = a<sup>n</sup> ⋅ b<sup>n</sup></span> (Potência de um produto)</li>
+                                <li><span class="formula">(a / b)<sup>n</sup> = a<sup>n</sup> / b<sup>n</sup></span> (Potência de um quociente)</li>
+                                <li><span class="formula">a<sup>-n</sup> = 1 / a<sup>n</sup></span> (Expoente negativo)</li>
+                                <li><span class="formula">a<sup>0</sup> = 1</span> (para a ≠ 0)</li>
+                            </ul>
+                            <p class="subject-content-text"><strong>Expoente Fracionário:</strong> Uma potência com expoente fracionário pode ser escrita como uma raiz: <span class="formula">a<sup>m/n</sup> = <sup>n</sup>√a<sup>m</sup></span> (o denominador 'n' vira o índice da raiz, e o numerador 'm' vira o expoente do radicando).</p>
+                            <img src="https://placehold.co/350x100/83C5BE/FFFFFF?text=Expoente+Fracionário" alt="Fórmula do Expoente Fracionário" class="example-image">
+                            <p class="subject-content-text"><strong>Propriedades da Radiciação (Revisão e Aprofundamento):</strong></p>
+                            <ul class="subject-content-list">
+                                <li><span class="formula"><sup>n</sup>√(a ⋅ b) = <sup>n</sup>√a ⋅ <sup>n</sup>√b</span> (Raiz de um produto)</li>
+                                <li><span class="formula"><sup>n</sup>√(a / b) = <sup>n</sup>√a / <sup>n</sup>√b</span> (Raiz de um quociente)</li>
+                                <li><span class="formula"><sup>m</sup>√(<sup>n</sup>√a) = <sup>m⋅n</sup>√a</span> (Raiz de raiz)</li>
+                                <li>Simplificação de radicais: Extrair fatores do radicando.</li>
+                            </ul>
+                            <p class="subject-content-text"><strong>Racionalização de Denominadores:</strong> Processo de eliminar radicais do denominador de uma fração, multiplicando o numerador e o denominador por um fator racionalizante apropriado.</p>
+                            <h3 class="subject-activity-title">Atividade Rápida 🧠</h3>
+                            <ol class="subject-activity-list">
+                                <li>Calcule o valor de <span class="formula">8<sup>2/3</sup></span>.</li>
+                                <li>Simplifique a expressão: <span class="formula">(x<sup>5</sup> ⋅ x<sup>-2</sup>) / x<sup>3</sup></span></li>
+                                <li>Racionalize o denominador da fração: <span class="formula">2 / √3</span></li>
+                                <li>Calcule: <span class="formula">√20 + √45</span> (Dica: simplifique os radicais primeiro).</li>
+                            </ol>`;
+                    } else if (subjectId === "9-equacoes2") {
+                        contentArea.innerHTML = `
+                            <h3 class="subject-content-title">Resumo: Equações de 2º Grau Completas e Incompletas</h3>
+                            <p class="subject-content-text">Uma <strong>equação de 2º grau</strong> na incógnita 'x' é toda equação que pode ser escrita na forma geral: <span class="formula">ax<sup>2</sup> + bx + c = 0</span>, onde 'a', 'b' e 'c' são coeficientes reais e 'a' ≠ 0.</p>
+                            <p class="subject-content-text"><strong>Tipos de Equações de 2º Grau:</strong></p>
+                            <ul class="subject-content-list">
+                                <li><strong>Completa:</strong> Quando todos os coeficientes (a, b, c) são diferentes de zero. Ex: <span class="formula">2x<sup>2</sup> + 5x - 3 = 0</span>.</li>
+                                <li><strong>Incompleta:</strong> Quando b=0, c=0 ou ambos são zero.
+                                    <ul class="list-[circle] list-inside ml-4">
+                                        <li>Se b=0: <span class="formula">ax<sup>2</sup> + c = 0</span>. Ex: <span class="formula">x<sup>2</sup> - 9 = 0</span>. Resolve-se isolando x<sup>2</sup> e tirando a raiz quadrada.</li>
+                                        <li>Se c=0: <span class="formula">ax<sup>2</sup> + bx = 0</span>. Ex: <span class="formula">x<sup>2</sup> - 5x = 0</span>. Resolve-se colocando 'x' em evidência.</li>
+                                        <li>Se b=0 e c=0: <span class="formula">ax<sup>2</sup> = 0</span>. A única solução é x=0.</li>
+                                    </ul>
+                                </li>
+                            </ul>
+                            <p class="subject-content-text"><strong>Resolução de Equações Completas (Fórmula de Bhaskara):</strong></p>
+                            <p class="subject-content-text">Primeiro, calculamos o discriminante (Delta): <span class="formula">Δ = b<sup>2</sup> - 4ac</span>.</p>
+                            <img src="https://placehold.co/300x100/83C5BE/FFFFFF?text=Fórmula+do+Delta" alt="Fórmula do Discriminante Delta" class="example-image">
+                            <ul class="subject-content-list">
+                                <li>Se Δ > 0: A equação tem duas raízes reais e distintas.</li>
+                                <li>Se Δ = 0: A equação tem duas raízes reais e iguais (uma raiz dupla).</li>
+                                <li>Se Δ < 0: A equação não tem raízes reais.</li>
+                            </ul>
+                            <p class="subject-content-text">Depois, usamos a fórmula de Bhaskara para encontrar as raízes (x): <span class="formula">x = (-b ± √Δ) / 2a</span>.</p>
+                             <img src="https://placehold.co/350x120/83C5BE/FFFFFF?text=Fórmula+de+Bhaskara" alt="Fórmula de Bhaskara" class="example-image">
+                            <h3 class="subject-activity-title">Atividade Rápida 🧠</h3>
+                            <ol class="subject-activity-list">
+                                <li>Identifique os coeficientes a, b e c na equação <span class="formula">3x<sup>2</sup> - 7x + 2 = 0</span>.</li>
+                                <li>Resolva a equação incompleta: <span class="formula">x<sup>2</sup> - 16 = 0</span>.</li>
+                                <li>Calcule o discriminante (Δ) da equação <span class="formula">x<sup>2</sup> - 5x + 6 = 0</span>. Quantas raízes reais ela tem?</li>
+                                <li>Use a fórmula de Bhaskara para resolver a equação <span class="formula">x<sup>2</sup> - 5x + 6 = 0</span>.</li>
+                            </ol>`;
+                    } else if (subjectId === "9-funcoes") {
+                        contentArea.innerHTML = `
+                            <h3 class="subject-content-title">Resumo: Funções - Noções, Gráficos (Afim e Quadrática)</h3>
+                            <p class="subject-content-text">Uma <strong>função</strong> é uma regra que relaciona cada elemento de um conjunto (domínio) a um único elemento de outro conjunto (contradomínio). O conjunto dos valores efetivamente "usados" no contradomínio é a imagem.</p>
+                            <p class="subject-content-text">Notação: <span class="formula">f: A → B</span> (lê-se: função f de A em B), onde y = f(x). 'x' é a variável independente, 'y' é a variável dependente.</p>
+                            <img src="https://placehold.co/350x180/83C5BE/FFFFFF?text=Diagrama+de+Função+(Domínio-Contradomínio)" alt="Diagrama ilustrando Domínio, Contradomínio e Imagem de uma Função" class="example-image">
+                            <p class="subject-content-text"><strong>Função Afim (ou Função Polinomial do 1º Grau):</strong></p>
+                            <p class="subject-content-text">É toda função que pode ser escrita na forma <span class="formula">f(x) = ax + b</span> ou <span class="formula">y = ax + b</span>, com 'a' e 'b' reais e 'a' ≠ 0.</p>
+                            <ul class="subject-content-list">
+                                <li>'a' é o coeficiente angular (determina a inclinação da reta). Se a > 0, a função é crescente; se a < 0, é decrescente.</li>
+                                <li>'b' é o coeficiente linear (onde a reta corta o eixo y).</li>
+                                <li>O gráfico de uma função afim é sempre uma <strong>reta</strong>.</li>
+                            </ul>
+                            <p class="subject-content-text"><strong>Função Quadrática (ou Função Polinomial do 2º Grau):</strong></p>
+                            <p class="subject-content-text">É toda função que pode ser escrita na forma <span class="formula">f(x) = ax<sup>2</sup> + bx + c</span> ou <span class="formula">y = ax<sup>2</sup> + bx + c</span>, com 'a', 'b' e 'c' reais e 'a' ≠ 0.</p>
+                            <ul class="subject-content-list">
+                                <li>O gráfico de uma função quadrática é sempre uma <strong>parábola</strong>.</li>
+                                <li>A concavidade da parábola é determinada por 'a': se a > 0, concavidade para cima ( Boca Feliz 😊 ); se a < 0, concavidade para baixo ( Boca Triste 😟 ).</li>
+                                <li>As raízes da função (onde f(x)=0) são os pontos onde a parábola corta o eixo x (calculadas por Bhaskara).</li>
+                                <li>O vértice da parábola é o ponto de máximo (se a < 0) ou mínimo (se a > 0).</li>
+                            </ul>
+                             <img src="https://placehold.co/400x200/83C5BE/FFFFFF?text=Gráficos+Função+Afim+e+Quadrática" alt="Exemplos de gráficos de Função Afim (reta) e Função Quadrática (parábola)" class="example-image">
+                            <h3 class="subject-activity-title">Atividade Rápida 🧠</h3>
+                            <ol class="subject-activity-list">
+                                <li>Dada a função <span class="formula">f(x) = 2x - 4</span>: a) É afim ou quadrática? b) Calcule f(3). c) Qual o valor de x para f(x)=0 (raiz)?</li>
+                                <li>O gráfico de <span class="formula">y = -x + 5</span> é uma reta crescente ou decrescente? Onde ela corta o eixo y?</li>
+                                <li>Para a função <span class="formula">g(x) = x<sup>2</sup> - 6x + 8</span>: a) A parábola tem concavidade para cima ou para baixo? b) Quais são as raízes dessa função?</li>
+                            </ol>`;
+                    } else if (subjectId === "9-semelhanca-tales") {
+                        contentArea.innerHTML = `
+                            <h3 class="subject-content-title">Resumo: Semelhança de Triângulos e Teorema de Tales</h3>
+                            <p class="subject-content-text"><strong>Semelhança de Triângulos:</strong> Dois triângulos são semelhantes se seus ângulos correspondentes são congruentes (iguais) e seus lados correspondentes são proporcionais. A razão entre os lados correspondentes é chamada de razão de semelhança (k).</p>
+                            <p class="subject-content-text">Casos de Semelhança (critérios para verificar se são semelhantes):</p>
+                            <ul class="subject-content-list">
+                                <li><strong>AA (Ângulo-Ângulo):</strong> Se dois ângulos de um triângulo são congruentes a dois ângulos de outro triângulo, então os triângulos são semelhantes. (Este é o mais usado!)</li>
+                                <li><strong>LAL (Lado-Ângulo-Lado):</strong> Se dois lados de um triângulo são proporcionais a dois lados de outro, e os ângulos formados por esses lados são congruentes, então são semelhantes.</li>
+                                <li><strong>LLL (Lado-Lado-Lado):</strong> Se os três lados de um triângulo são proporcionais aos três lados de outro, então são semelhantes.</li>
+                            </ul>
+                            <img src="https://placehold.co/400x200/83C5BE/FFFFFF?text=Triângulos+Semelhantes" alt="Imagem de dois triângulos semelhantes com lados proporcionais" class="example-image">
+                            <p class="subject-content-text"><strong>Teorema de Tales:</strong> Se um feixe de retas paralelas é cortado por duas retas transversais, então os segmentos determinados pelas paralelas em uma transversal são proporcionais aos segmentos correspondentes determinados na outra transversal.</p>
+                            <p class="subject-content-text">Basicamente, se temos retas paralelas cortadas por transversais, podemos montar proporções com os pedacinhos formados nas transversais.</p>
+                            <img src="https://placehold.co/350x250/83C5BE/FFFFFF?text=Teorema+de+Tales" alt="Imagem ilustrando o Teorema de Tales com retas paralelas e transversais" class="example-image">
+                            <h3 class="subject-activity-title">Atividade Rápida 🧠</h3>
+                            <ol class="subject-activity-list">
+                                <li>Dois triângulos têm ângulos internos medindo 30°, 70° e 80°. Eles são semelhantes? Por quê?</li>
+                                <li>Um triângulo tem lados 3, 4, 5. Outro triângulo semelhante tem seu menor lado medindo 6. Quais as medidas dos outros lados do segundo triângulo?</li>
+                                <li>Na figura do Teorema de Tales, se os segmentos na primeira transversal são 2 e 4, e o segmento correspondente a 2 na segunda transversal é 3, qual o valor do segmento correspondente a 4?</li>
+                            </ol>`;
+                    } else if (subjectId === "9-trigonometria") {
+                        contentArea.innerHTML = `
+                            <h3 class="subject-content-title">Resumo: Trigonometria no Triângulo Retângulo</h3>
+                            <p class="subject-content-text">A <strong>trigonometria</strong> estuda as relações entre os lados e os ângulos de um triângulo, especialmente o triângulo retângulo.</p>
+                            <p class="subject-content-text">Em um triângulo retângulo, em relação a um dos seus ângulos agudos, temos:</p>
+                            <ul class="subject-content-list">
+                                <li><strong>Cateto Oposto (CO):</strong> O lado que está "de frente" para o ângulo agudo considerado.</li>
+                                <li><strong>Cateto Adjacente (CA):</strong> O lado que forma o ângulo agudo considerado e NÃO é a hipotenusa.</li>
+                                <li><strong>Hipotenusa (H):</strong> O lado oposto ao ângulo reto (o maior lado).</li>
+                            </ul>
+                            <img src="https://placehold.co/350x200/83C5BE/FFFFFF?text=Triângulo+Retângulo+(CO,+CA,+H)" alt="Imagem de um Triângulo Retângulo com Cateto Oposto, Adjacente e Hipotenusa em relação a um ângulo" class="example-image">
+                            <p class="subject-content-text">As principais razões trigonométricas são:</p>
+                            <ul class="subject-content-list">
+                                <li><strong>Seno (sen):</strong> <span class="formula">sen(ângulo) = Cateto Oposto / Hipotenusa</span></li>
+                                <li><strong>Cosseno (cos):</strong> <span class="formula">cos(ângulo) = Cateto Adjacente / Hipotenusa</span></li>
+                                <li><strong>Tangente (tg):</strong> <span class="formula">tg(ângulo) = Cateto Oposto / Cateto Adjacente</span></li>
+                            </ul>
+                            <p class="subject-content-text">Existem ângulos notáveis (30°, 45°, 60°) com valores de seno, cosseno e tangente conhecidos (geralmente apresentados em tabela).</p>
+                            <h3 class="subject-activity-title">Atividade Rápida 🧠</h3>
+                            <ol class="subject-activity-list">
+                                <li>Em um triângulo retângulo, a hipotenusa é 10 e um cateto oposto a um ângulo α é 6. Qual o sen(α)?</li>
+                                <li>Se o cateto adjacente a um ângulo β é 8 e a hipotenusa é 10, qual o cos(β)?</li>
+                                <li>Um avião decola sob um ângulo de 30°. Se ele percorreu 1000 metros em linha reta no ar, qual a altura que ele atingiu em relação ao solo? (Use sen(30°) = 0,5).</li>
+                            </ol>`;
+                    } else if (subjectId === "9-rel-metricas") {
+                        contentArea.innerHTML = `
+                            <h3 class="subject-content-title">Resumo: Relações Métricas no Triângulo Retângulo</h3>
+                            <p class="subject-content-text">Além do Teorema de Pitágoras, existem outras relações importantes entre as medidas dos elementos de um triângulo retângulo quando traçamos a sua <strong>altura relativa à hipotenusa</strong>.</p>
+                            <p class="subject-content-text">Considerando um triângulo retângulo ABC, reto em A, com hipotenusa 'a', catetos 'b' e 'c', altura relativa à hipotenusa 'h', e projeções dos catetos sobre a hipotenusa 'm' (projeção de c) e 'n' (projeção de b):</p>
+                            <img src="https://placehold.co/400x250/83C5BE/FFFFFF?text=Relações+Métricas+no+Triângulo+Retângulo" alt="Imagem de um Triângulo Retângulo com altura e projeções" class="example-image">
+                            <p class="subject-content-text">Principais Relações Métricas:</p>
+                            <ul class="subject-content-list">
+                                <li><span class="formula">b<sup>2</sup> = a ⋅ n</span>  (Quadrado de um cateto é o produto da hipotenusa pela projeção desse cateto)</li>
+                                <li><span class="formula">c<sup>2</sup> = a ⋅ m</span>  (Mesma relação para o outro cateto)</li>
+                                <li><span class="formula">h<sup>2</sup> = m ⋅ n</span>  (Quadrado da altura é o produto das projeções dos catetos)</li>
+                                <li><span class="formula">a ⋅ h = b ⋅ c</span>  (Produto da hipotenusa pela altura é igual ao produto dos catetos - vem da área do triângulo)</li>
+                                <li><span class="formula">a = m + n</span> (A hipotenusa é a soma das projeções)</li>
+                                <li>E, claro, o Teorema de Pitágoras: <span class="formula">a<sup>2</sup> = b<sup>2</sup> + c<sup>2</sup></span></li>
+                            </ul>
+                            <h3 class="subject-activity-title">Atividade Rápida 🧠</h3>
+                            <ol class="subject-activity-list">
+                                <li>Em um triângulo retângulo, a hipotenusa mede 10 cm e a projeção de um dos catetos sobre ela mede 3,6 cm. Qual a medida desse cateto?</li>
+                                <li>A altura relativa à hipotenusa de um triângulo retângulo divide a hipotenusa em segmentos de 4 cm e 9 cm. Qual a medida da altura?</li>
+                                <li>Os catetos de um triângulo retângulo medem 6 cm e 8 cm. Calcule a altura relativa à hipotenusa.</li>
+                            </ol>`;
+                    } else if (subjectId === "9-volumes") {
+                        contentArea.innerHTML = `
+                            <h3 class="subject-content-title">Resumo: Volume de Sólidos Geométricos</h3>
+                            <p class="subject-content-text">O <strong>volume</strong> de um sólido geométrico é a medida do espaço que ele ocupa. É uma grandeza tridimensional.</p>
+                            <p class="subject-content-text">Alguns sólidos e suas fórmulas de volume:</p>
+                            <ul class="subject-content-list">
+                                <li><strong>Cubo:</strong> Sólido com 6 faces quadradas iguais. Se 'a' é a medida da aresta:
+                                    <span class="formula">Volume = a<sup>3</sup></span>
+                                    <img src="https://placehold.co/200x200/83C5BE/FFFFFF?text=Cubo" alt="Imagem de um Cubo" class="example-image">
+                                </li>
+                                <li><strong>Paralelepípedo Retângulo (Bloco Retangular):</strong> Sólido com 6 faces retangulares. Se 'a', 'b', 'c' são as medidas do comprimento, largura e altura:
+                                    <span class="formula">Volume = a × b × c</span>
+                                    <img src="https://placehold.co/250x150/83C5BE/FFFFFF?text=Paralelepípedo" alt="Imagem de um Paralelepípedo" class="example-image">
+                                </li>
+                                <li><strong>Cilindro Reto:</strong> Sólido com duas bases circulares paralelas e iguais, e uma superfície lateral curva. Se 'r' é o raio da base e 'h' é a altura:
+                                    <span class="formula">Volume = Área da base × altura = πr<sup>2</sup>h</span>
+                                    <img src="https://placehold.co/200x250/83C5BE/FFFFFF?text=Cilindro" alt="Imagem de um Cilindro" class="example-image">
+                                </li>
+                            </ul>
+                            <p class="subject-content-text">A unidade de volume no SI é o metro cúbico (m<sup>3</sup>). Outras comuns: cm<sup>3</sup>, litro (L) (1 L = 1 dm<sup>3</sup> = 1000 cm<sup>3</sup>).</p>
+                            <h3 class="subject-activity-title">Atividade Rápida 🧠</h3>
+                            <ol class="subject-activity-list">
+                                <li>Qual o volume de um cubo com aresta de 5 cm?</li>
+                                <li>Uma caixa de sapatos tem dimensões 30 cm, 20 cm e 10 cm. Qual o seu volume?</li>
+                                <li>Um reservatório cilíndrico tem raio da base de 2 metros e altura de 3 metros. Qual o seu volume em m<sup>3</sup>? (Use π = 3,14).</li>
+                                <li>Quantos litros de água cabem em uma piscina retangular com 5m de comprimento, 3m de largura e 1m de profundidade? (Lembre-se: 1 m<sup>3</sup> = 1000 L)</li>
+                            </ol>`;
+                    } else if (subjectId === "9-juros-comp") {
+                        contentArea.innerHTML = `
+                            <h3 class="subject-content-title">Resumo: Juros Compostos (noções)</h3>
+                            <p class="subject-content-text">Nos <strong>juros compostos</strong>, os juros gerados em cada período são incorporados ao capital inicial para o cálculo dos juros do período seguinte. É o famoso "juros sobre juros".</p>
+                            <p class="subject-content-text">Diferente dos juros simples (onde os juros incidem sempre sobre o capital inicial), nos juros compostos o capital aumenta a cada período.</p>
+                            <p class="subject-content-text">A fórmula para calcular o <strong>Montante (M)</strong> em juros compostos é:</p>
+                            <p class="subject-content-text"><span class="formula">M = C × (1 + i)<sup>t</sup></span></p>
+                            <ul class="subject-content-list">
+                                <li><strong>M:</strong> Montante (capital final)</li>
+                                <li><strong>C:</strong> Capital inicial (valor aplicado ou emprestado)</li>
+                                <li><strong>i:</strong> Taxa de juros (na forma decimal, ex: 5% = 0,05) por período</li>
+                                <li><strong>t:</strong> Tempo (número de períodos, na mesma unidade da taxa)</li>
+                            </ul>
+                            <p class="subject-content-text">Os juros (J) podem ser encontrados subtraindo o capital inicial do montante: <span class="formula">J = M - C</span>.</p>
+                            <img src="https://placehold.co/400x150/83C5BE/FFFFFF?text=Gráfico+Juros+Simples+vs+Compostos" alt="Gráfico comparando crescimento de Juros Simples e Compostos" class="example-image">
+                            <h3 class="subject-activity-title">Atividade Rápida 🧠</h3>
+                            <ol class="subject-activity-list">
+                                <li>Se você aplicar R$ 1000,00 a uma taxa de juros compostos de 10% ao ano, qual será o montante após 2 anos?</li>
+                                <li>Qual a diferença entre juros simples e juros compostos?</li>
+                                <li>Um capital de R$ 500,00 foi aplicado a juros compostos de 2% ao mês durante 3 meses. Calcule o montante.</li>
+                            </ol>`;
+                    }
+                    else {
+                        contentArea.innerHTML = `<p>Conteúdo sobre "${subjectName}" será adicionado em breve...</p><p>Enquanto isso, que tal perguntar sobre este assunto para a nossa IA no chat? 😉</p>`;
+                    }
                 }
-            } catch (error) {
-                console.error('Erro ao chamar a API Gemini:', error);
-                return `Ocorreu um erro ao comunicar com a IA: ${error.message}. Por favor, verifique a sua ligação ou tente mais tarde.`;
+                window.scrollTo(0, 0); 
             }
-        }
 
-        document.querySelectorAll('.gemini-explain-btn').forEach(button => {
-            button.addEventListener('click', async function() {
-                const concept = this.dataset.concept;
-                const prompt = `Explique o conceito de "${concept}" de forma muito simples, clara e concisa, como se fosse para um aluno do 8º ano do ensino fundamental que está a ter o primeiro contacto com o tema. Use analogias ou exemplos do dia a dia, se possível, para tornar o aprendizado mais fácil e divertido. Evite termos muito técnicos e foque na intuição. Formate a resposta com parágrafos curtos. No final, adicione: "Se ainda tiver dúvidas, fale com seu professor Kelvin!"`;
-                showGeminiModal(`✨ Explicando: ${concept} ✨`);
-                const explanation = await callGeminiAPI(prompt);
-                if(geminiModalContent) geminiModalContent.innerHTML = `<div class="prose prose-sm max-w-none">${explanation.replace(/\n\n/g, '</p><p>').replace(/\n/g, '<br>')}</div>`;
-            });
-        });
-
-        document.querySelectorAll('.gemini-problem-btn').forEach(button => {
-            button.addEventListener('click', async function() {
-                const topic = this.dataset.topic;
-                const prompt = `Crie um problema prático e interessante sobre "${topic}" para um aluno do 8º ano do ensino fundamental. O problema deve ter um contexto do cotidiano ou algo que chame a atenção dos jovens (ex: jogos, desportos, tecnologia, mistérios). Apresente o problema claramente. Depois do problema, se quiser, adicione uma secção "Dica ✨:" com uma pequena dica para ajudar a começar, sem dar a resposta final. No final, adicione: "Para corrigir ou tirar dúvidas, procure o professor Kelvin!"`;
-                showGeminiModal(`✨ Problema sobre: ${topic} ✨`);
-                const problem = await callGeminiAPI(prompt);
-                if(geminiModalContent) geminiModalContent.innerHTML = `<div class="prose prose-sm max-w-none">${problem.replace(/\n\n/g, '</p><p>').replace(/\n/g, '<br>')}</div>`;
-            });
-        });
-
-        
-        const openChatBtn = document.getElementById('openChatBtn');
-        const geminiChatModal = document.getElementById('geminiChatModal');
-        const closeChatModalBtn = document.getElementById('closeChatModal');
-        const chatMessagesContainer = document.getElementById('chatMessages');
-        const chatInput = document.getElementById('chatInput');
-        const sendChatBtn = document.getElementById('sendChatBtn');
-        const chatTypingIndicator = document.getElementById('chatTypingIndicator');
-
-        let chatConversationHistory = [
-            { role: "user", parts: [{text: "Você é um assistente de matemática amigável, super paciente e divertido, especializado em ajudar alunos do 8º ano a entenderem ângulos. Seu nome é Gênio dos Graus. Responda perguntas, explique conceitos de ângulos, gere atividades e problemas práticos sobre ângulos. Use uma linguagem informal e próxima do aluno. Ao final de explicações mais longas ou quando o aluno parecer precisar de mais ajuda, sempre sugira: 'Lembre-se, para dúvidas mais profundas ou para conferir suas respostas, o seu professor Kelvin Radimak é a melhor pessoa para ajudar! 😉'" }]},
-            { role: "model", parts: [{text: "Olá! Sou o Gênio dos Graus, seu novo parceiro para desvendar os mistérios dos ângulos! 😊 Em que posso te ajudar hoje? Pode perguntar sobre um tipo de ângulo, pedir uma explicação diferente, ou até mesmo um desafio para testar seus conhecimentos!"}]}
-        ];
-
-        function displayChatMessage(message, sender) {
-            const messageDiv = document.createElement('div');
-            messageDiv.classList.add('flex', 'mb-2');
-            
-            const bubbleDiv = document.createElement('div');
-            bubbleDiv.classList.add(sender === 'user' ? 'chat-bubble-user' : 'chat-bubble-model');
-            bubbleDiv.innerHTML = `<p class="whitespace-pre-wrap">${message.replace(/\n\n/g, '</p><p>').replace(/\n/g, '<br>')}</p>`; 
-            
-            if (sender === 'user') {
-                messageDiv.classList.add('justify-end');
+            window.showMainContent = function() { 
+                if(mainContentContainerRef) mainContentContainerRef.classList.remove('hidden');
+                if(subjectContentSection) subjectContentSection.classList.add('hidden');
+                const assuntosSection = document.getElementById('assuntos');
+                if (assuntosSection) {
+                     const elementPosition = assuntosSection.getBoundingClientRect().top + window.pageYOffset;
+                     const offsetPosition = elementPosition - headerHeight;
+                     window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
+                }
             }
-            messageDiv.appendChild(bubbleDiv);
-            if(chatMessagesContainer) {
+
+            document.querySelectorAll('.subject-button').forEach(button => {
+                button.addEventListener('click', function() {
+                    const subjectId = this.dataset.subjectId;
+                    const subjectName = this.dataset.subjectName;
+                    showSubjectContent(subjectId, subjectName);
+                });
+            });
+
+            const backToSubjectsBtn = document.getElementById('backToSubjectsBtn');
+            if(backToSubjectsBtn) backToSubjectsBtn.addEventListener('click', showMainContent);
+
+
+            const openChatBtn = document.getElementById('openChatBtn');
+            const geminiChatModal = document.getElementById('geminiChatModal');
+            const closeChatModalBtn = document.getElementById('closeChatModal');
+            const chatMessagesContainer = document.getElementById('chatMessages');
+            const chatInput = document.getElementById('chatInput');
+            const sendChatBtn = document.getElementById('sendChatBtn');
+            const chatTypingIndicator = document.getElementById('chatTypingIndicator');
+
+            let chatConversationHistory = [
+                { 
+                    role: "user", 
+                    parts: [{text: "Você é Gema, uma assistente de IA super amigável, paciente e especialista em matemática para alunos do 6º ao 9º ano do ensino fundamental no Brasil. Seu objetivo é ajudar os alunos a entenderem conceitos, tirar dúvidas e, se pedirem, gerar exemplos de problemas ou atividades. Use uma linguagem clara, positiva e encorajadora, como se estivesse a conversar com um jovem estudante. Sempre que explicar algo ou gerar uma atividade, finalize lembrando o aluno: 'Lembre-se, se tiver mais dúvidas ou quiser se aprofundar, o seu professor Kelvin Radimak está sempre pronto para ajudar na sala de aula! 😉'" }]
+                },
+                { 
+                    role: "model", 
+                    parts: [{text: "Olá! Eu sou a Gema, sua ajudante de matemática!  математика (matemática em russo, só pra descontrair haha 😉). Estou aqui para te ajudar com qualquer dúvida sobre os assuntos de matemática do 6º ao 9º ano. Pode perguntar, pedir uma explicação diferente ou até um probleminha para treinar. Vamos nessa?"}]
+                }
+            ];
+            
+            function displayInitialBotMessage() {
+                if(chatMessagesContainer && chatConversationHistory.length > 1 && chatConversationHistory[1].role === 'model') {
+                    const welcomeBubbleDiv = document.createElement('div');
+                    welcomeBubbleDiv.classList.add('chat-bubble-model');
+                    welcomeBubbleDiv.innerHTML = `<p>${chatConversationHistory[1].parts[0].text.replace(/\n/g, '<br>')}</p>`;
+                    const welcomeMessageDiv = document.createElement('div');
+                    welcomeMessageDiv.classList.add('flex', 'mb-2');
+                    welcomeMessageDiv.appendChild(welcomeBubbleDiv);
+                    chatMessagesContainer.innerHTML = ''; 
+                    chatMessagesContainer.appendChild(welcomeMessageDiv);
+                }
+            }
+
+            if(openChatBtn) openChatBtn.addEventListener('click', () => {
+                if(geminiChatModal) geminiChatModal.classList.remove('hidden');
+                if(chatInput) chatInput.focus();
+                if(chatMessagesContainer && chatMessagesContainer.children.length <= 1) { 
+                     displayInitialBotMessage();
+                }
+            });
+            if(closeChatModalBtn) closeChatModalBtn.addEventListener('click', () => {
+                if(geminiChatModal) geminiChatModal.classList.add('hidden');
+            });
+
+            function displayChatMessage(message, sender) {
+                if(!chatMessagesContainer) return;
+                const messageDiv = document.createElement('div');
+                messageDiv.classList.add('flex', 'mb-2');
+                
+                const bubbleDiv = document.createElement('div');
+                bubbleDiv.classList.add(sender === 'user' ? 'chat-bubble-user' : 'chat-bubble-model');
+                const sanitizedMessage = message.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                bubbleDiv.innerHTML = `<p class="whitespace-pre-wrap">${sanitizedMessage.replace(/\n\n/g, '</p><p>').replace(/\n/g, '<br>')}</p>`; 
+                
+                if (sender === 'user') {
+                    messageDiv.classList.add('justify-end');
+                }
+                messageDiv.appendChild(bubbleDiv);
                 chatMessagesContainer.appendChild(messageDiv);
                 chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
             }
-        }
-        
-        
-        if(chatMessagesContainer && chatConversationHistory.length > 1 && chatConversationHistory[1].role === 'model') {
-             // Limpa apenas as mensagens dinâmicas, preservando a estrutura do modal
-            const dynamicMessages = chatMessagesContainer.querySelectorAll('.flex.mb-2');
-            dynamicMessages.forEach(msg => {
-                if (msg.querySelector('.chat-bubble-user') || msg.querySelector('.chat-bubble-model')) {
-                    // Verifica se não é a mensagem de boas-vindas hardcoded
-                    if (!msg.isEqualNode(chatMessagesContainer.children[0])) {
-                         msg.remove();
+
+            async function callChatGeminiAPI(userMessageText) {
+                const apiKey = "AIzaSyDxcxVmGPBbg7mJ6_cmMDkHrDpbx3Lspik"; 
+                if (!apiKey) {
+                     console.warn("Chave da API Gemini não configurada.");
+                     return "Desculpe, o serviço de chat IA não está configurado corretamente. Avise o professor Kelvin!";
+                }
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+                
+                const currentTurnHistory = [...chatConversationHistory, { role: "user", parts: [{ text: userMessageText }] }];
+                const payload = { contents: currentTurnHistory };
+
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        console.error('Erro da API Gemini (dados):', errorData);
+                        throw new Error(`Erro ${response.status}: ${errorData?.error?.message || response.statusText}`);
                     }
+                    const result = await response.json();
+                    if (result.candidates && result.candidates.length > 0 &&
+                        result.candidates[0].content && result.candidates[0].content.parts &&
+                        result.candidates[0].content.parts.length > 0) {
+                        const modelResponseText = result.candidates[0].content.parts[0].text;
+                        chatConversationHistory.push({ role: "user", parts: [{ text: userMessageText }] }); 
+                        chatConversationHistory.push({ role: "model", parts: [{ text: modelResponseText }] }); 
+                        return modelResponseText;
+                    } else {
+                        console.error('Resposta inesperada da API Gemini:', result);
+                        if (result.promptFeedback && result.promptFeedback.blockReason) {
+                            return `Não pude processar seu pedido devido a: ${result.promptFeedback.blockReason}. Tente reformular.`;
+                        }
+                        return 'Desculpe, não consegui uma resposta da IA. Tente de novo.';
+                    }
+                } catch (error) {
+                    console.error('Erro ao chamar a API Gemini:', error);
+                    return `Erro ao comunicar com a IA: ${error.message}. Tente mais tarde.`;
+                }
+            }
+
+            async function handleChatSend() {
+                if(!chatInput || !chatTypingIndicator || !chatMessagesContainer) return;
+                const userMessage = chatInput.value.trim();
+                if (!userMessage) return;
+
+                displayChatMessage(userMessage, 'user');
+                chatInput.value = '';
+                if (chatTypingIndicator) chatTypingIndicator.classList.remove('hidden');
+
+                const modelResponseText = await callChatGeminiAPI(userMessage); 
+
+                displayChatMessage(modelResponseText, 'model');
+                if (chatTypingIndicator) chatTypingIndicator.classList.add('hidden');
+            }
+
+            if(sendChatBtn) sendChatBtn.addEventListener('click', handleChatSend);
+            if(chatInput) chatInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    handleChatSend();
                 }
             });
-            // Se a mensagem de boas-vindas não estiver lá (ex: após um refresh onde o JS rodou de novo)
-            // E se o container de mensagens estiver vazio ou só tiver a mensagem de boas-vindas
-            if (!chatMessagesContainer.querySelector('.chat-bubble-model p')?.textContent.startsWith("Olá! Sou o Gênio dos Graus")) {
-                 const welcomeBubbleDiv = document.createElement('div');
-                welcomeBubbleDiv.classList.add('chat-bubble-model');
-                welcomeBubbleDiv.innerHTML = `<p>${chatConversationHistory[1].parts[0].text}</p>`;
-                const welcomeMessageDiv = document.createElement('div');
-                welcomeMessageDiv.classList.add('flex', 'mb-2');
-                welcomeMessageDiv.appendChild(welcomeBubbleDiv);
-                chatMessagesContainer.prepend(welcomeMessageDiv); // Adiciona no início
-            }
-        }
-
-
-        if(openChatBtn) openChatBtn.addEventListener('click', () => {
-            if(geminiChatModal) geminiChatModal.classList.remove('hidden');
-            if(chatInput) chatInput.focus();
-        });
-        if(closeChatModalBtn) closeChatModalBtn.addEventListener('click', () => {
-            if(geminiChatModal) geminiChatModal.classList.add('hidden');
-        });
-
-        async function handleChatSend() {
-            const userMessage = chatInput.value.trim();
-            if (!userMessage) return;
-
-            displayChatMessage(userMessage, 'user');
-            chatInput.value = '';
-            if(chatTypingIndicator) chatTypingIndicator.classList.remove('hidden');
-
             
-            const currentTurnUserMessage = { role: "user", parts: [{ text: userMessage }] };
-            let tempHistoryForAPI = [...chatConversationHistory, currentTurnUserMessage];
-
-
-            const modelResponseText = await callGeminiAPI(userMessage, true, tempHistoryForAPI); 
-
-            
-            const modelResponseForHistory = { role: "model", parts: [{ text: modelResponseText }] };
-            chatConversationHistory = [...tempHistoryForAPI, modelResponseForHistory]; 
-
-            displayChatMessage(modelResponseText, 'model');
-            if(chatTypingIndicator) chatTypingIndicator.classList.add('hidden');
-        }
-
-        if(sendChatBtn) sendChatBtn.addEventListener('click', handleChatSend);
-        if(chatInput) chatInput.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                handleChatSend();
+            if(chatMessagesContainer) {
+                displayInitialBotMessage();
             }
         });
-
     </script>
 </body>
 </html>
