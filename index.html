@@ -6,21 +6,25 @@
     <title>Rad IA 2.0</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         :root {
-            --primary-color: #4a90e2; /* Azul principal */
-            --secondary-color: #50e3c2; /* Verde-água secundário */
+            --primary-red: #e50914; 
+            --dark-background: #141414; 
+            --medium-dark-background: #1f1f1f; 
+            --light-text: #ffffff;
+            --medium-gray-text: #b3b3b3; 
+            --dark-gray-text: #808080; 
             --accent-color-1: #f5a623; /* Laranja para imagens */
             --accent-color-2: #bd10e0; /* Roxo para TTS de texto */
             --accent-color-3: #7ed321; /* Verde para TTS de ficheiro */
-            --accent-color-4: #4a4a4a; /* Cinza escuro para falar com IA */
+            --accent-color-4: #6c757d; /* Cinza para Falar com IA */
             --accent-color-5: #e91e63; /* Rosa para Gerador de Guiões */
-            --background-color: #f4f7f9;
-            --card-background-color: #ffffff;
-            --text-color: #333;
-            --heading-color: #2c3e50;
-            --border-color: #e0e6ed;
-            --shadow-color: rgba(0, 0, 0, 0.08);
+            --accent-color-6: #00bcd4; /* Ciano para Gerador de Atividades */
+            --accent-color-7: #3f51b5; /* Indigo para Pesquisa */
+            --accent-color-8: #009688; /* Teal para Tradutor */
+            --border-color: #303030; 
+            --shadow-color: rgba(0, 0, 0, 0.2); 
         }
 
         body {
@@ -30,18 +34,18 @@
             align-items: center;
             margin: 0;
             padding: 0; 
-            background-color: var(--background-color); 
-            color: var(--text-color);
+            background-color: var(--dark-background); 
+            color: var(--light-text); 
             min-height: 100vh;
             box-sizing: border-box;
         }
 
         .top-bar {
-            background-color: var(--primary-color);
-            color: white;
-            padding: 15px 30px;
+            background-color: #000000; 
+            color: var(--light-text);
+            padding: 10px 20px; 
             width: 100%;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -52,10 +56,12 @@
         }
 
         .top-bar .main-title {
-            color: white;
+            color: var(--primary-red); 
             margin: 0;
-            font-size: 1.8em; 
+            font-size: 1.6em; 
             font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
         
         nav ul {
@@ -63,54 +69,66 @@
             padding: 0;
             margin: 0;
             display: flex;
-            gap: 5px; /* Reduzido o gap para caber mais itens */
+            flex-wrap: wrap; 
+            justify-content: center; 
+            gap: 2px; 
         }
 
         nav ul li a {
-            color: white;
+            color: var(--medium-gray-text);
             text-decoration: none;
-            padding: 10px 12px; /* Padding ligeiramente ajustado */
+            padding: 8px 10px; 
             border-radius: 6px;
-            transition: background-color 0.3s ease;
+            transition: background-color 0.3s ease, color 0.3s ease;
             font-weight: 500;
             display: flex;
             align-items: center;
-            gap: 8px; 
-            font-size: 0.9em; /* Reduzir tamanho da fonte da navegação */
+            gap: 5px; 
+            font-size: 0.75em; 
         }
 
         nav ul li a:hover, nav ul li a.active {
-            background-color: rgba(255,255,255,0.2);
+            background-color: var(--primary-red);
+            color: var(--light-text);
         }
+        nav ul li a .fa-solid {
+            transition: transform 0.2s ease-in-out;
+            font-size: 0.9em; 
+        }
+        nav ul li a:hover .fa-solid {
+            transform: scale(1.1);
+        }
+
 
         .main-content-area {
             width: 100%;
             max-width: 960px; 
-            padding: 30px 20px; 
+            padding: 20px; 
             box-sizing: border-box;
-            margin-top: 70px; 
+            margin-top: 60px; 
         }
         
         .generator-section {
-            background-color: var(--card-background-color); 
-            padding: 25px 30px; 
+            background-color: var(--medium-dark-background); 
+            padding: 20px 25px; 
             border-radius: 10px; 
-            box-shadow: 0 8px 16px var(--shadow-color); 
+            box-shadow: 0 8px 20px var(--shadow-color); 
             margin-bottom: 30px; 
             text-align: left; 
             display: none; 
+            border: 1px solid var(--border-color);
         }
         .generator-section.active {
             display: block;
         }
 
         .generator-section h2 {
-            color: var(--heading-color); 
+            color: var(--light-text); 
             margin-top: 0;
-            margin-bottom: 25px; 
-            font-size: 1.8em; 
-            border-bottom: 2px solid var(--border-color); 
-            padding-bottom: 15px; 
+            margin-bottom: 20px; 
+            font-size: 1.6em; 
+            border-bottom: 2px solid var(--primary-red); 
+            padding-bottom: 12px; 
             font-weight: 600;
             display: flex;
             align-items: center;
@@ -118,15 +136,22 @@
         }
         .generator-section h2 .fa-solid { 
             font-size: 0.9em; 
+            color: var(--primary-red); 
+        }
+        .generator-section h3 {
+            color: var(--medium-gray-text);
+            font-size: 1.1em;
+            margin-top: 15px;
+            margin-bottom: 8px;
         }
 
 
         #aiGeneratedImageContainer {
-            margin-top: 20px;
-            padding: 15px;
-            border: 2px dashed #d0d9e0; 
+            margin-top: 15px;
+            padding: 10px;
+            border: 2px dashed var(--dark-gray-text); 
             border-radius: 8px;
-            background-color: #f8f9fa;
+            background-color: var(--dark-background); 
             min-height: 150px; 
             display: flex;
             justify-content: center;
@@ -135,48 +160,49 @@
         }
         #aiGeneratedImage {
             max-width: 100%;
-            max-height: 400px;
+            max-height: 350px; 
             border-radius: 6px;
             object-fit: contain; 
         }
         #aiImagePlaceholder {
-            color: #6c757d;
-            font-size: 0.95em;
+            color: var(--medium-gray-text);
+            font-size: 0.9em;
         }
 
         .button-group {
-            margin-top: 20px; 
-            margin-bottom: 15px; 
+            margin-top: 15px; 
+            margin-bottom: 10px; 
             display: flex;
             flex-wrap: wrap;
             justify-content: flex-start; 
-            gap: 12px; 
+            gap: 10px; 
         }
         button { 
-            padding: 12px 25px; 
-            font-size: 0.95em; 
-            font-weight: 500;
+            padding: 10px 20px; 
+            font-size: 0.9em; 
+            font-weight: 600; 
             cursor: pointer;
             border: none;
             border-radius: 6px;
             transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
-            color: white; 
+            color: var(--light-text); 
             letter-spacing: 0.5px;
             display: flex; 
             align-items: center;
             justify-content: center;
             gap: 8px;
+            text-transform: uppercase; 
         }
         button:hover {
             transform: translateY(-2px); 
-            box-shadow: 0 6px 12px rgba(0,0,0,0.1); 
+            box-shadow: 0 6px 12px rgba(0,0,0,0.2); 
         }
 
         /* Cores específicas dos botões */
         #btnRecordVoice { background-color: var(--accent-color-4); }
-        #btnRecordVoice:hover { background-color: #333; }
-        #btnRecordVoice.recording { background-color: #e63946; }
-        #btnRecordVoice.recording:hover { background-color: #c32f3b; }
+        #btnRecordVoice:hover { background-color: #5a5a5a; }
+        #btnRecordVoice.recording { background-color: var(--primary-red); }
+        #btnRecordVoice.recording:hover { background-color: #c50812; }
 
         #btnProcessFileToSpeech { background-color: var(--accent-color-3); }
         #btnProcessFileToSpeech:hover { background-color: #6ab01c; }
@@ -187,23 +213,34 @@
         #btnGenerateImageFromText { background-color: var(--accent-color-1); }
         #btnGenerateImageFromText:hover { background-color: #d88c1b; }
 
-        #btnDownloadAiImage { background-color: var(--primary-color); }
-        #btnDownloadAiImage:hover { background-color: #3a7bc8; }
+        #btnDownloadAiImage { background-color: var(--primary-red); } 
+        #btnDownloadAiImage:hover { background-color: #c50812; }
 
-        #btnDeleteAiImage { background-color: #dc3545; }
-        #btnDeleteAiImage:hover { background-color: #c82333; }
+        #btnDeleteAiImage { background-color: var(--dark-gray-text); } 
+        #btnDeleteAiImage:hover { background-color: #666666; }
         
         #btnGenerateScript, #btnPlayScript { background-color: var(--accent-color-5); }
         #btnGenerateScript:hover, #btnPlayScript:hover { background-color: #c2185b; }
 
+        #btnGenerateActivity { background-color: var(--accent-color-6); }
+        #btnGenerateActivity:hover { background-color: #0097a7; }
+        
+        #btnSearchAI, #btnClearSearch { background-color: var(--accent-color-7); }
+        #btnSearchAI:hover, #btnClearSearch:hover { background-color: #303f9f; }
+        #btnClearSearch { background-color: var(--dark-gray-text); }
+        #btnClearSearch:hover { background-color: #666; }
+
+        #btnTranslateText, #btnPlayTranslatedText { background-color: var(--accent-color-8); }
+        #btnTranslateText:hover, #btnPlayTranslatedText:hover { background-color: #00796b; }
+
 
         #errorMessage { 
-            color: #721c24; 
+            color: #f8d7da; 
             font-weight: 500; 
             margin: 20px auto; 
             padding: 12px 18px; 
             border-radius: 6px;
-            background-color: #f8d7da; 
+            background-color: #721c24; 
             border: 1px solid #f5c6cb; 
             text-align: left;
             display: none; 
@@ -213,37 +250,58 @@
             display: none;
             margin-top: 20px; 
             font-style: italic;
-            color: #545d65; 
+            color: var(--medium-gray-text); 
             font-size: 0.9em;
             text-align: center; 
         }
-        textarea { /* Estilo unificado para textareas */
+        textarea, select { 
             width: 100%; 
-            padding: 12px; 
-            margin-top: 10px;
-            margin-bottom: 15px; 
+            padding: 10px; 
+            margin-top: 8px;
+            margin-bottom: 12px; 
             border-radius: 6px;
-            border: 1px solid #ced4da;
+            border: 1px solid var(--dark-gray-text);
             font-family: 'Inter', sans-serif;
-            font-size: 1em; 
-            min-height: 70px; 
+            font-size: 0.95em; 
+            min-height: 40px; 
             box-sizing: border-box; 
+            background-color: #2b2b2b; 
+            color: var(--light-text); 
+        }
+        textarea {
+            min-height: 70px;
             resize: vertical; 
+        }
+        textarea::placeholder {
+            color: var(--medium-gray-text);
         }
         input[type="file"] {
             margin-top: 10px;
             margin-bottom: 15px;
             padding: 10px; 
-            border: 1px solid #ced4da;
+            border: 1px solid var(--dark-gray-text);
             border-radius: 6px;
             font-family: 'Inter', sans-serif;
             font-size: 0.95em; 
             width: 100%;
             box-sizing: border-box;
-            background-color: #fff; 
+            background-color: #2b2b2b; 
+            color: var(--light-text);
+        }
+        input[type="file"]::file-selector-button { 
+            background-color: var(--primary-red);
+            color: var(--light-text);
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+        input[type="file"]::file-selector-button:hover {
+            background-color: #c50812;
         }
         
-        #audioPlayerContainer, #voiceChatResponseContainer, #scriptDisplayContainer {
+        #audioPlayerContainer, #voiceChatResponseContainer, #scriptDisplayContainer, #activityDisplayContainer, #searchResultsContainer, #translatedTextContainer {
             margin-top: 20px; 
             text-align: center; 
         }
@@ -252,54 +310,70 @@
             max-width: 550px; 
             border-radius: 6px;
         }
-        #voiceChatResponseText, #generatedScriptText {
-            background-color: #e9ecef;
+        #voiceChatResponseText, #generatedScriptText, #generatedActivityText, #searchResultsText, #translatedTextOutput {
+            background-color: #2b2b2b; 
             padding: 15px;
             border-radius: 6px;
             margin-top: 10px;
             text-align: left;
             white-space: pre-wrap; 
             font-size: 0.95em;
-            color: #495057;
-            border: 1px solid #dae0e5;
-            max-height: 400px; /* Para evitar que fique muito longo */
-            overflow-y: auto; /* Adicionar scroll se necessário */
+            color: var(--light-text); 
+            border: 1px solid var(--border-color);
+            max-height: 400px; 
+            overflow-y: auto; 
         }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: var(--medium-gray-text);
+        }
+
 
         @media (max-width: 768px) {
             .top-bar {
                 flex-direction: column;
-                padding: 15px;
+                padding: 10px; 
                  position: static; 
             }
             .main-content-area {
                 margin-top: 0; 
             }
             .top-bar .main-title {
-                margin-bottom: 15px;
+                font-size: 1.5em; 
+                margin-bottom: 10px;
             }
             nav ul {
-                flex-direction: row; 
-                flex-wrap: wrap;
-                justify-content: center;
-                width: 100%;
+                gap: 3px; 
             }
             nav ul li a {
-                padding: 8px 10px; 
-                font-size: 0.85em; /* Ajustar para caber melhor */
+                padding: 8px; 
+                font-size: 0.7em; 
+                gap: 4px;
+            }
+            nav ul li a .fa-solid {
+                font-size: 0.8em; 
             }
             .main-content-area {
-                padding: 20px 15px;
+                padding: 15px 10px;
             }
             .generator-section h2 {
-                font-size: 1.5em;
+                font-size: 1.4em;
             }
             button { 
                 width: 100%; 
+                padding: 12px 15px; 
             }
             .button-group {
                 flex-direction: column; 
                 align-items: stretch; 
+            }
+            textarea, select, input[type="file"] {
+                font-size: 0.9em;
             }
         }
     </style>
@@ -313,7 +387,10 @@
                 <li><a href="#" class="nav-link" data-target="fileToPodcastSection"><i class="fa-solid fa-file-audio"></i> Podcast</a></li>
                 <li><a href="#" class="nav-link" data-target="textToSpeechSection"><i class="fa-solid fa-comment-dots"></i> Texto-Fala</a></li>
                 <li><a href="#" class="nav-link" data-target="imageGeneratorSection"><i class="fa-solid fa-image"></i> Imagem</a></li>
-                <li><a href="#" class="nav-link" data-target="scriptGeneratorSection"><i class="fa-solid fa-scroll"></i> Guião/História</a></li>
+                <li><a href="#" class="nav-link" data-target="scriptGeneratorSection"><i class="fa-solid fa-scroll"></i> Guião</a></li>
+                <li><a href="#" class="nav-link" data-target="translatorSection"><i class="fa-solid fa-language"></i> Tradutor</a></li>
+                <li><a href="#" class="nav-link" data-target="activityGeneratorSection"><i class="fa-solid fa-graduation-cap"></i> Atividades</a></li>
+                <li><a href="#" class="nav-link" data-target="searchAiSection"><i class="fa-solid fa-search"></i> Pesquisa</a></li>
             </ul>
         </nav>
     </div>
@@ -323,6 +400,10 @@
 
         <div id="talkToAiSection" class="generator-section active">
             <h2><i class="fa-solid fa-headset"></i> Falar com a IA</h2>
+            <div class="form-group">
+                <label for="talkAiVoiceSelect">Escolha a Voz da IA:</label>
+                <select id="talkAiVoiceSelect"></select>
+            </div>
             <div class="button-group">
                 <button id="btnRecordVoice"><i class="fa-solid fa-microphone"></i> Gravar Voz</button>
             </div>
@@ -335,20 +416,38 @@
         <div id="fileToPodcastSection" class="generator-section">
             <h2><i class="fa-solid fa-file-invoice"></i> Converter Ficheiro em Podcast (Diálogo)</h2>
             <input type="file" id="fileInput" accept="image/jpeg,image/png,image/gif,image/webp,application/pdf,.txt">
+            <div class="form-group">
+                <label for="podcastSpeaker1Voice">Voz do Apresentador 1:</label>
+                <select id="podcastSpeaker1Voice"></select>
+            </div>
+            <div class="form-group">
+                <label for="podcastSpeaker2Voice">Voz do Apresentador 2:</label>
+                <select id="podcastSpeaker2Voice"></select>
+            </div>
             <div class="button-group">
                 <button id="btnProcessFileToSpeech"><i class="fa-solid fa-podcast"></i> Gerar Diálogo em Áudio</button>
+                <button id="btnExportPdf" style="display:none;"><i class="fa-solid fa-file-pdf"></i> Exportar Guião para PDF</button>
+            </div>
+             <div id="podcastScriptDisplayContainer" style="display:none;">
+                <h3>Guião do Podcast Gerado:</h3>
+                <div id="generatedPodcastScriptText"></div>
             </div>
         </div>
         
         <div id="textToSpeechSection" class="generator-section">
             <h2><i class="fa-solid fa-align-left"></i> Gerador de Fala (Text-to-Speech)</h2>
             <textarea id="ttsInputText" placeholder="Escreva o texto que deseja converter em fala..."></textarea>
+            <div class="form-group">
+                <label for="ttsVoiceSelect">Escolha a Voz:</label>
+                <select id="ttsVoiceSelect"></select>
+            </div>
             <div class="button-group">
                 <button id="btnGenerateSpeechFromText"><i class="fa-solid fa-volume-high"></i> Gerar Fala com IA (Texto)</button>
             </div>
         </div>
         
-        <div id="audioPlayerContainer" style="display:none;"> <audio id="audioPlayer" controls></audio>
+        <div id="audioPlayerContainer" style="display:none;"> 
+            <audio id="audioPlayer" controls></audio>
         </div>
 
         <div id="imageGeneratorSection" class="generator-section">
@@ -370,6 +469,10 @@
         <div id="scriptGeneratorSection" class="generator-section">
             <h2><i class="fa-solid fa-feather-pointed"></i> Gerador de Guiões e Histórias</h2>
             <textarea id="scriptPrompt" placeholder="Descreva o tema, personagens, género ou ideia base para o seu guião ou história..."></textarea>
+            <div class="form-group">
+                <label for="scriptVoiceSelect">Voz para Narração:</label>
+                <select id="scriptVoiceSelect"></select>
+            </div>
             <div class="button-group">
                 <button id="btnGenerateScript"><i class="fa-solid fa-book-open"></i> Gerar Guião/História</button>
             </div>
@@ -379,6 +482,112 @@
                 <div class="button-group">
                     <button id="btnPlayScript" style="display:none;"><i class="fa-solid fa-play-circle"></i> ✨ Ouvir Guião/História</button>
                 </div>
+            </div>
+        </div>
+
+        <div id="translatorSection" class="generator-section">
+            <h2><i class="fa-solid fa-language"></i> Tradutor de Texto Inteligente</h2>
+            <div class="form-group">
+                <label for="sourceTextToTranslate">Texto para Traduzir:</label>
+                <textarea id="sourceTextToTranslate" placeholder="Introduza o texto aqui..."></textarea>
+            </div>
+            <div class="form-group">
+                <label for="sourceLanguageSelect">Língua de Origem:</label>
+                <select id="sourceLanguageSelect">
+                    <option value="auto">Detetar Automaticamente</option>
+                    <option value="pt">Português</option>
+                    <option value="en">Inglês</option>
+                    <option value="es">Espanhol</option>
+                    <option value="fr">Francês</option>
+                    <option value="de">Alemão</option>
+                    <option value="it">Italiano</option>
+                    <option value="ja">Japonês</option>
+                    <option value="ko">Coreano</option>
+                    <option value="zh">Chinês (Simplificado)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="targetLanguageSelect">Língua de Destino:</label>
+                <select id="targetLanguageSelect">
+                    <option value="pt">Português</option>
+                    <option value="en" selected>Inglês</option>
+                    <option value="es">Espanhol</option>
+                    <option value="fr">Francês</option>
+                    <option value="de">Alemão</option>
+                    <option value="it">Italiano</option>
+                    <option value="ja">Japonês</option>
+                    <option value="ko">Coreano</option>
+                    <option value="zh">Chinês (Simplificado)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="translatorVoiceSelect">Voz para Tradução:</label>
+                <select id="translatorVoiceSelect"></select>
+            </div>
+            <div class="button-group">
+                <button id="btnTranslateText"><i class="fa-solid fa-exchange-alt"></i> Traduzir Texto</button>
+            </div>
+            <div id="translatedTextContainer" style="display:none;">
+                <h3>Texto Traduzido:</h3>
+                <div id="translatedTextOutput"></div>
+                <div class="button-group">
+                    <button id="btnPlayTranslatedText" style="display:none;"><i class="fa-solid fa-volume-up"></i> ✨ Ouvir Tradução</button>
+                </div>
+            </div>
+        </div>
+
+
+        <div id="activityGeneratorSection" class="generator-section">
+            <h2><i class="fa-solid fa-graduation-cap"></i> Gerador de Atividades Escolares</h2>
+            <div class="form-group">
+                <label for="activityYearSelect">Ano Escolar:</label>
+                <select id="activityYearSelect">
+                    <option value="6">6º Ano - Ensino Fundamental</option>
+                    <option value="7">7º Ano - Ensino Fundamental</option>
+                    <option value="8">8º Ano - Ensino Fundamental</option>
+                    <option value="9">9º Ano - Ensino Fundamental</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="activitySubjectSelect">Matéria:</label>
+                <select id="activitySubjectSelect">
+                    </select>
+            </div>
+            <div class="form-group">
+                <label for="activitySpecificContentSelect">Conteúdo Específico:</label>
+                 <select id="activitySpecificContentSelect">
+                    </select>
+            </div>
+            <div class="form-group">
+                <label for="activityNumQuestionsSelect">Número de Questões:</label>
+                <select id="activityNumQuestionsSelect">
+                    <option value="5">5 Questões</option>
+                    <option value="10">10 Questões</option>
+                    <option value="15">15 Questões</option>
+                </select>
+            </div>
+            <div class="button-group">
+                <button id="btnGenerateActivity"><i class="fa-solid fa-cogs"></i> Gerar Atividades</button>
+            </div>
+            <div id="activityDisplayContainer" style="display:none;">
+                <h3>Atividades Geradas:</h3>
+                <div id="generatedActivityText"></div>
+                 <div class="button-group">
+                    <button id="btnExportActivityPdf" style="display:none;"><i class="fa-solid fa-file-pdf"></i> Exportar Atividades para PDF</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="searchAiSection" class="generator-section">
+            <h2><i class="fa-solid fa-magnifying-glass"></i> Pesquisa com IA</h2>
+            <textarea id="searchInput" placeholder="O que deseja pesquisar?"></textarea>
+            <div class="button-group">
+                <button id="btnSearchAI"><i class="fa-solid fa-paper-plane"></i> Pesquisar</button>
+                <button id="btnClearSearch" style="display:none;"><i class="fa-solid fa-eraser"></i> Limpar Resultados</button>
+            </div>
+            <div id="searchResultsContainer" style="display:none;">
+                <h3>Resultados da Pesquisa:</h3>
+                <div id="searchResultsText"></div>
             </div>
         </div>
         
@@ -392,25 +601,73 @@
         const imagenApiKey = userProvidedApiKey; 
         const ttsApiKey = userProvidedApiKey; 
 
+        const availableVoices = [
+            { name: "Zephyr", value: "Zephyr" }, { name: "Puck", value: "Puck" },
+            { name: "Charon", value: "Charon" }, { name: "Kore", value: "Kore" },
+            { name: "Alnilam", value: "Alnilam" }, { name: "Sadachbia", value: "Sadachbia" },
+            { name: "Leda", value: "Leda" } 
+        ];
+        
+        const conteudosPorMateriaAno = {
+            "Matemática": {
+                "6": ["Números Naturais e Operações Fundamentais", "Múltiplos e Divisores (MMC e MDC)", "Frações: Conceitos e Operações", "Números Decimais e Operações", "Porcentagem Básica", "Geometria: Figuras Planas e Sólidos Geométricos", "Medidas de Comprimento, Massa, Capacidade e Tempo"],
+                "7": ["Números Inteiros: Operações e Ordenação", "Números Racionais: Frações e Decimais (positivos e negativos)", "Equações de 1º Grau com uma Incógnita", "Razão e Proporção", "Regra de Três Simples", "Porcentagem e Juros Simples", "Ângulos e suas Classificações", "Polígonos: Classificação e Propriedades", "Área de Figuras Planas (quadrado, retângulo, triângulo)"],
+                "8": ["Números Reais e Potenciação com Expoente Inteiro", "Radiciação", "Produtos Notáveis e Fatoração Algébrica", "Sistemas de Equações de 1º Grau com Duas Incógnitas", "Equações de 2º Grau (introdução, fórmula de Bhaskara)", "Teorema de Pitágoras", "Semelhança de Triângulos", "Volume de Prismas e Cilindros", "Estatística: Leitura e Interpretação de Gráficos e Tabelas"],
+                "9": ["Potenciação e Radiciação (revisão e aprofundamento)", "Função Afim (1º Grau): Gráfico e Propriedades", "Função Quadrática (2º Grau): Gráfico e Vértice", "Equações de 2º Grau Completas e Incompletas", "Relações Métricas no Triângulo Retângulo (além de Pitágoras)", "Trigonometria no Triângulo Retângulo (seno, cosseno, tangente)", "Semelhança de Figuras Geométricas", "Juros Compostos", "Noções de Probabilidade"]
+            },
+            "Português": {
+                "6": ["Interpretação de Textos Diversos (narrativos, descritivos, informativos)", "Gêneros Textuais: Conto, Fábula, Notícia", "Substantivos (classificação, flexão)", "Adjetivos e Locuções Adjetivas", "Artigos Definidos e Indefinidos", "Pronomes Pessoais", "Verbos: Tempos do Modo Indicativo (presente, pretérito perfeito, futuro do presente)", "Ortografia: Uso de S/Z, X/CH, G/J", "Pontuação Básica"],
+                "7": ["Interpretação de Textos Argumentativos Simples", "Gêneros Textuais: Crônica, Reportagem, Poema", "Pronomes Possessivos, Demonstrativos e Indefinidos", "Advérbios e Locuções Adverbiais", "Preposições e Conjunções Coordenativas", "Verbos: Tempos do Modo Subjuntivo (presente, pretérito imperfeito)", "Concordância Nominal Básica", "Figuras de Linguagem (metáfora, comparação)", "Coesão e Coerência Textual"],
+                "8": ["Interpretação de Textos Literários e Não Literários (análise crítica)", "Gêneros Textuais: Artigo de Opinião, Resenha, Texto Teatral", "Vozes Verbais (ativa, passiva, reflexiva)", "Conjunções Subordinativas", "Período Composto por Coordenação e Subordinação (orações adjetivas e adverbiais)", "Concordância Verbal Básica", "Regência Nominal e Verbal (casos simples)", "Colocação Pronominal (próclise, mesóclise, ênclise)"],
+                "9": ["Análise de Discurso em Diferentes Textos", "Gêneros Textuais: Editorial, Manifesto, Seminário", "Funções da Linguagem", "Variação Linguística (regional, social, histórica)", "Sintaxe do Período Composto (aprofundamento)", "Pontuação Expressiva e Estilística", "Intertextualidade", "Literatura Brasileira (introdução a movimentos literários)"]
+            },
+            "Ciências": {
+                "6": ["O Universo e o Sistema Solar", "A Terra: Movimentos e Camadas", "Água no Planeta Terra (ciclo, estados físicos, importância)", "Solo: Formação e Tipos", "Ar Atmosférico: Composição e Importância", "Seres Vivos: Características e Classificação Básica (Reinos)", "Cadeias e Teias Alimentares"],
+                "7": ["Máquinas Simples e Transformações de Energia", "Fontes de Energia (renováveis e não renováveis)", "Calor e Temperatura: Propagação e Efeitos", "Som e Luz: Propriedades Básicas", "Ecossistemas Brasileiros", "Relações Ecológicas", "Impactos Ambientais (desmatamento, poluição)"],
+                "8": ["Corpo Humano: Organização Celular e Níveis de Organização", "Sistemas do Corpo Humano: Digestório, Respiratório, Circulatório e Excretor", "Sistema Nervoso e Sentidos", "Sistema Locomotor (ossos e músculos)", "Reprodução Humana e Sexualidade", "Saúde e Doenças (prevenção, vacinação)"],
+                "9": ["Genética: Hereditariedade e Leis de Mendel (introdução)", "Evolução das Espécies (ideias de Darwin e Lamarck)", "Química: Matéria, Átomos e Moléculas", "Tabela Periódica (elementos principais)", "Misturas e Separação de Misturas", "Reações Químicas (conceito básico)", "Física: Movimento, Força e Leis de Newton (introdução)"]
+            },
+             "História": {
+                "6": ["O que é História? Fontes Históricas", "Pré-História: Paleolítico e Neolítico", "Antiguidade Oriental: Mesopotâmia e Egito", "Antiguidade Clássica: Grécia (Atenas e Esparta, Democracia, Cultura)", "Antiguidade Clássica: Roma (República e Império, Legado Cultural)"],
+                "7": ["A Formação da Europa Feudal", "Império Bizantino e o Mundo Islâmico Medieval", "As Cruzadas", "Renascimento Comercial e Urbano", "Grandes Navegações e a Descoberta da América", "Povos Indígenas da América antes da Conquista"],
+                "8": ["Iluminismo e a Revolução Francesa", "Revolução Industrial", "Independência dos Estados Unidos", "Período Napoleônico e o Congresso de Viena", "Independência das Colônias da América Espanhola", "Brasil Imperial: Primeiro Reinado e Período Regencial"],
+                "9": ["Brasil Imperial: Segundo Reinado e Crise da Monarquia", "Proclamação da República no Brasil e a República Velha", "Primeira Guerra Mundial", "Revolução Russa", "Crise de 1929 e o Período Entreguerras", "Segunda Guerra Mundial", "Guerra Fria e a Nova Ordem Mundial"]
+            },
+            "Geografia": {
+                "6": ["O Espaço Geográfico e a Paisagem", "Orientação e Localização no Espaço (pontos cardeais, coordenadas)", "Representações Cartográficas (mapas, escalas)", "O Planeta Terra: Movimentos e Zonas Climáticas", "Relevo, Hidrografia e Vegetação do Brasil (introdução)", "População Brasileira: Formação e Distribuição"],
+                "7": ["Formação Territorial do Brasil", "Regiões Brasileiras: Aspectos Físicos, Econômicos e Sociais", "Urbanização Brasileira e Problemas Urbanos", "Atividades Econômicas no Brasil: Agropecuária, Indústria e Serviços", "Fontes de Energia e Recursos Minerais no Brasil"],
+                "8": ["Globalização e Blocos Econômicos Mundiais", "Continentes: Aspectos Físicos e Humanos (foco em América e África)", "Conflitos Mundiais Contemporâneos e Geopolítica", "Desenvolvimento e Subdesenvolvimento", "Questões Ambientais Globais (aquecimento global, desertificação)"],
+                "9": ["Europa: Aspectos Físicos, Econômicos e União Europeia", "Ásia: Potências Regionais e Diversidade Cultural (China, Índia, Japão)", "Oceania e Regiões Polares", "Redes Geográficas e Fluxos Mundiais (comércio, informação)", "Brasil no Contexto Global: Relações Internacionais e Desafios"]
+            }
+        };
+
+
         // Elementos do DOM
-        let errorMessageElement, loadingIndicator;
-        let imagePromptTextarea, btnGenerateImageFromText;
-        let aiGeneratedImageElement, aiImagePlaceholder, aiGeneratedImageContainer;
-        let btnDownloadAiImage, btnDeleteAiImage;
-        let ttsInputText, btnGenerateSpeechFromText, audioPlayer, audioPlayerContainer;
-        let fileInput, btnProcessFileToSpeech;
-        let lastAttemptedMimeType = 'desconhecido'; 
-        let btnRecordVoice, voiceChatResponseContainer, voiceChatResponseText;
-        let mediaRecorder;
-        let audioChunks = [];
-        let navLinks, generatorSections;
-        // Elementos para Gerador de Guiões
-        let scriptPromptTextarea, btnGenerateScript, scriptDisplayContainer, generatedScriptText, btnPlayScript;
+        // ... (outros elementos já definidos) ...
+        let activitySpecificContentSelect;
 
 
         window.onload = function() {
+            // ... (inicialização de outros elementos) ...
             errorMessageElement = document.getElementById('errorMessage'); 
             loadingIndicator = document.getElementById('loadingIndicator');
+            
+            btnRecordVoice = document.getElementById('btnRecordVoice');
+            voiceChatResponseContainer = document.getElementById('voiceChatResponseContainer');
+            voiceChatResponseText = document.getElementById('voiceChatResponseText');
+            talkAiVoiceSelect = document.getElementById('talkAiVoiceSelect');
+
+            fileInput = document.getElementById('fileInput');
+            btnProcessFileToSpeech = document.getElementById('btnProcessFileToSpeech');
+            btnExportPdf = document.getElementById('btnExportPdf');
+            podcastScriptDisplayContainer = document.getElementById('podcastScriptDisplayContainer');
+            generatedPodcastScriptText = document.getElementById('generatedPodcastScriptText');
+            
+            ttsInputText = document.getElementById('ttsInputText');
+            btnGenerateSpeechFromText = document.getElementById('btnGenerateSpeechFromText'); 
+            audioPlayer = document.getElementById('audioPlayer');
+            audioPlayerContainer = document.getElementById('audioPlayerContainer');
+            
             imagePromptTextarea = document.getElementById('imagePrompt');
             btnGenerateImageFromText = document.getElementById('btnGenerateImageFromText');
             aiGeneratedImageElement = document.getElementById('aiGeneratedImage');
@@ -418,23 +675,43 @@
             aiGeneratedImageContainer = document.getElementById('aiGeneratedImageContainer');
             btnDownloadAiImage = document.getElementById('btnDownloadAiImage');
             btnDeleteAiImage = document.getElementById('btnDeleteAiImage');
-            ttsInputText = document.getElementById('ttsInputText');
-            btnGenerateSpeechFromText = document.getElementById('btnGenerateSpeechFromText'); 
-            audioPlayer = document.getElementById('audioPlayer');
-            audioPlayerContainer = document.getElementById('audioPlayerContainer');
-            fileInput = document.getElementById('fileInput');
-            btnProcessFileToSpeech = document.getElementById('btnProcessFileToSpeech');
-            btnRecordVoice = document.getElementById('btnRecordVoice');
-            voiceChatResponseContainer = document.getElementById('voiceChatResponseContainer');
-            voiceChatResponseText = document.getElementById('voiceChatResponseText');
-            
-            // Gerador de Guiões
+
             scriptPromptTextarea = document.getElementById('scriptPrompt');
             btnGenerateScript = document.getElementById('btnGenerateScript');
             scriptDisplayContainer = document.getElementById('scriptDisplayContainer');
             generatedScriptText = document.getElementById('generatedScriptText');
             btnPlayScript = document.getElementById('btnPlayScript');
+            scriptVoiceSelect = document.getElementById('scriptVoiceSelect');
 
+            activityYearSelect = document.getElementById('activityYearSelect');
+            activitySubjectSelect = document.getElementById('activitySubjectSelect');
+            activitySpecificContentSelect = document.getElementById('activitySpecificContentSelect'); // Novo seletor
+            activityNumQuestionsSelect = document.getElementById('activityNumQuestionsSelect');
+            btnGenerateActivity = document.getElementById('btnGenerateActivity');
+            activityDisplayContainer = document.getElementById('activityDisplayContainer');
+            generatedActivityText = document.getElementById('generatedActivityText');
+            btnExportActivityPdf = document.getElementById('btnExportActivityPdf');
+
+            searchInput = document.getElementById('searchInput');
+            btnSearchAI = document.getElementById('btnSearchAI');
+            searchResultsContainer = document.getElementById('searchResultsContainer');
+            searchResultsText = document.getElementById('searchResultsText');
+            btnClearSearch = document.getElementById('btnClearSearch');
+
+            sourceTextToTranslate = document.getElementById('sourceTextToTranslate');
+            sourceLanguageSelect = document.getElementById('sourceLanguageSelect');
+            targetLanguageSelect = document.getElementById('targetLanguageSelect');
+            btnTranslateText = document.getElementById('btnTranslateText');
+            translatedTextContainer = document.getElementById('translatedTextContainer');
+            translatedTextOutput = document.getElementById('translatedTextOutput');
+            btnPlayTranslatedText = document.getElementById('btnPlayTranslatedText');
+            translatorVoiceSelect = document.getElementById('translatorVoiceSelect');
+
+
+            populateVoiceSelectors();
+            populateActivitySubjects(); // Popula matérias inicialmente
+            updateSpecificContentOptions(); // Popula conteúdos com base na seleção inicial
+            
             navLinks = document.querySelectorAll('nav .nav-link');
             generatorSections = document.querySelectorAll('.generator-section');
 
@@ -453,13 +730,15 @@
             });
             if (navLinks.length > 0) document.querySelector('.nav-link[data-target="talkToAiSection"]').click();
 
+            // Event Listeners
             btnGenerateImageFromText.addEventListener('click', gerarImagemComIA);
             btnDownloadAiImage.addEventListener('click', baixarImagemGeradaIA);
             btnDeleteAiImage.addEventListener('click', apagarImagemGeradaIA);
             btnGenerateSpeechFromText.addEventListener('click', () => { 
                  const textToSpeak = ttsInputText.value.trim();
+                 const selectedVoice = document.getElementById('ttsVoiceSelect').value;
                  if (textToSpeak) {
-                    gerarFalaComIA(textToSpeak, "Texto Introduzido", false); 
+                    gerarFalaComIA(textToSpeak, "Texto Introduzido", false, selectedVoice); 
                  } else {
                     displayErrorMessage("Por favor, introduza o texto que deseja converter em fala.");
                  }
@@ -469,10 +748,31 @@
             btnGenerateScript.addEventListener('click', gerarGuiaoHistoria);
             btnPlayScript.addEventListener('click', () => {
                 const scriptContent = generatedScriptText.textContent;
+                const selectedVoice = scriptVoiceSelect.value;
                 if (scriptContent) {
-                    gerarFalaComIA(scriptContent, "Guião/História Gerada", false); // Voz única para narração
+                    gerarFalaComIA(scriptContent, "Guião/História Gerada", false, selectedVoice); 
                 }
             });
+            btnGenerateActivity.addEventListener('click', gerarAtividadesComIA);
+            activityYearSelect.addEventListener('change', updateSpecificContentOptions);
+            activitySubjectSelect.addEventListener('change', updateSpecificContentOptions);
+
+            btnSearchAI.addEventListener('click', pesquisarComIA);
+            btnClearSearch.addEventListener('click', () => {
+                searchResultsText.textContent = '';
+                searchResultsContainer.style.display = 'none';
+                btnClearSearch.style.display = 'none';
+            });
+             btnExportPdf.addEventListener('click', () => exportTextToPdf(generatedPodcastScriptText.textContent, "guiao_podcast.pdf"));
+             btnExportActivityPdf.addEventListener('click', () => exportTextToPdf(generatedActivityText.textContent, "atividades_geradas.pdf"));
+             btnTranslateText.addEventListener('click', translateTextWithAI);
+             btnPlayTranslatedText.addEventListener('click', () => {
+                const translatedContent = translatedTextOutput.textContent;
+                const selectedVoice = translatorVoiceSelect.value;
+                if (translatedContent) {
+                    gerarFalaComIA(translatedContent, "Texto Traduzido", false, selectedVoice);
+                }
+             });
 
 
             audioPlayer.onerror = function(e) {
@@ -491,6 +791,66 @@
                 audioPlayerContainer.style.display = 'none';
             };
         };
+
+        function populateVoiceSelectors() {
+            const selectors = [
+                { id: 'talkAiVoiceSelect', default: 'Charon' },
+                { id: 'podcastSpeaker1Voice', default: 'Charon' },
+                { id: 'podcastSpeaker2Voice', default: 'Kore' },
+                { id: 'ttsVoiceSelect', default: 'Zephyr' },
+                { id: 'scriptVoiceSelect', default: 'Zephyr' },
+                { id: 'translatorVoiceSelect', default: 'Zephyr'} 
+            ];
+
+            selectors.forEach(selInfo => {
+                const selectElement = document.getElementById(selInfo.id);
+                if (selectElement) {
+                    availableVoices.forEach(voice => {
+                        const option = document.createElement('option');
+                        option.value = voice.value;
+                        option.textContent = voice.name;
+                        if (voice.value === selInfo.default) {
+                            option.selected = true;
+                        }
+                        selectElement.appendChild(option);
+                    });
+                }
+            });
+        }
+        
+        function populateActivitySubjects() {
+            const subjects = Object.keys(conteudosPorMateriaAno);
+            activitySubjectSelect.innerHTML = ''; // Limpa opções existentes
+            subjects.forEach(subject => {
+                const option = document.createElement('option');
+                option.value = subject;
+                option.textContent = subject;
+                activitySubjectSelect.appendChild(option);
+            });
+        }
+
+        function updateSpecificContentOptions() {
+            const selectedYear = activityYearSelect.value;
+            const selectedSubject = activitySubjectSelect.value;
+            activitySpecificContentSelect.innerHTML = ''; // Limpa opções existentes
+
+            if (conteudosPorMateriaAno[selectedSubject] && conteudosPorMateriaAno[selectedSubject][selectedYear]) {
+                const contents = conteudosPorMateriaAno[selectedSubject][selectedYear];
+                contents.forEach(content => {
+                    const option = document.createElement('option');
+                    option.value = content;
+                    option.textContent = content;
+                    activitySpecificContentSelect.appendChild(option);
+                });
+            } else {
+                const option = document.createElement('option');
+                option.value = "";
+                option.textContent = "Nenhum conteúdo específico disponível";
+                option.disabled = true;
+                activitySpecificContentSelect.appendChild(option);
+            }
+        }
+
 
         function displayErrorMessage(message) {
             errorMessageElement.textContent = message;
@@ -584,7 +944,8 @@
                     const aiResponseText = result.candidates[0].content.parts[0].text;
                     voiceChatResponseText.textContent = aiResponseText;
                     voiceChatResponseContainer.style.display = 'block';
-                    await gerarFalaComIA(aiResponseText, "Resposta da IA", false, "Charon"); // Voz Charon para resposta
+                    const selectedVoice = talkAiVoiceSelect.value;
+                    await gerarFalaComIA(aiResponseText, "Resposta da IA", false, selectedVoice); 
                 } else {
                     throw new Error("Não foi possível obter uma resposta de texto da IA para o áudio enviado.");
                 }
@@ -599,16 +960,16 @@
             if (!geminiFlashApiKey) throw new Error("API key para Gemini Flash não configurada.");
             
             let promptText = "";
-            let maxTokens = 1500; // Aumentado para PDF e Texto para tentar ~7min
+            let maxTokens = 2000; 
             if (fileType === "image") {
                 promptText = "Crie um resumo detalhado desta imagem, com informação suficiente para gerar um diálogo de podcast com cerca de 2-3 minutos de duração. Destaque os elementos visuais principais, a atmosfera geral e em quaisquer textos visíveis. Seja descritivo e envolvente.";
                 maxTokens = 700; 
             } else if (fileType === "pdf") {
                 promptText = "Crie um resumo detalhado e abrangente deste documento PDF, com informação suficiente para gerar um diálogo de podcast com aproximadamente 7 minutos de duração. Foque-se nas ideias principais, argumentos, exemplos e conclusões, omitindo apenas detalhes menores ou informação redundante. O objetivo é ter material rico para uma discussão entre duas vozes.";
-                maxTokens = 3000; 
+                maxTokens = 3500; 
             } else if (fileType === "text") {
                  promptText = "Crie um resumo detalhado e abrangente deste texto, com informação suficiente para gerar um diálogo de podcast com aproximadamente 7 minutos de duração. Foque-se nas ideias principais, argumentos, exemplos e conclusões. O objetivo é ter material rico para uma discussão entre duas vozes.";
-                 maxTokens = 3000; 
+                 maxTokens = 3500; 
             }
 
             const payload = {
@@ -647,6 +1008,9 @@
             }
             const result = await response.json();
             if (result.candidates?.[0]?.content?.parts?.[0]?.text) {
+                generatedPodcastScriptText.textContent = result.candidates[0].content.parts[0].text; 
+                podcastScriptDisplayContainer.style.display = 'block';
+                btnExportPdf.style.display = 'inline-flex';
                 return result.candidates[0].content.parts[0].text;
             }
             throw new Error("Não foi possível gerar o guião do diálogo a partir do resumo.");
@@ -662,6 +1026,9 @@
             clearErrorMessage();
             loadingIndicator.style.display = 'block';
             audioPlayerContainer.style.display = 'none';
+            podcastScriptDisplayContainer.style.display = 'none';
+            btnExportPdf.style.display = 'none';
+
 
             try {
                 let summaryText = "";
@@ -690,7 +1057,7 @@
                 if (summaryText) {
                     const dialogueScript = await generateDialogueFromSummary(summaryText);
                     if (dialogueScript) {
-                        await gerarFalaComIA(dialogueScript, fileDescriptionForTTS, true); // true para multi-speaker com Charon e Kore
+                        await gerarFalaComIA(dialogueScript, fileDescriptionForTTS, true); 
                     } else {
                         throw new Error("Falha ao gerar o guião do diálogo.");
                     }
@@ -744,7 +1111,7 @@
                     const script = result.candidates[0].content.parts[0].text;
                     generatedScriptText.textContent = script;
                     scriptDisplayContainer.style.display = 'block';
-                    btnPlayScript.style.display = 'inline-flex'; // Usar inline-flex para o botão
+                    btnPlayScript.style.display = 'inline-flex'; 
                 } else {
                     throw new Error("Não foi possível obter o guião/história da resposta da API.");
                 }
@@ -752,6 +1119,200 @@
                 displayErrorMessage(error.message);
             } finally {
                 loadingIndicator.style.display = 'none';
+            }
+        }
+
+        async function gerarAtividadesComIA() {
+            const ano = activityYearSelect.value;
+            const materia = activitySubjectSelect.value;
+            const conteudo = activitySpecificContentSelect.value; // Usar o valor do novo seletor
+            const numQuestoes = activityNumQuestionsSelect.value;
+
+            if (!conteudo) { // Verifica se um conteúdo foi selecionado
+                displayErrorMessage("Por favor, selecione o conteúdo específico para as atividades.");
+                return;
+            }
+            if (!geminiFlashApiKey) {
+                displayErrorMessage("A API key para o serviço Gemini não está configurada.");
+                return;
+            }
+            clearErrorMessage();
+            loadingIndicator.textContent = "A gerar atividades...";
+            loadingIndicator.style.display = 'block';
+            activityDisplayContainer.style.display = 'none';
+            btnExportActivityPdf.style.display = 'none';
+
+            const prompt = `Crie ${numQuestoes} questões de ${materia} para alunos do ${ano}º ano do Ensino Fundamental, focadas no seguinte conteúdo: "${conteudo}". As questões devem ser claras, adequadas ao nível de ensino e, se possível, variadas (ex: múltipla escolha, verdadeiro ou falso, resposta curta, problema). Formate a saída de forma organizada, numerando cada questão.`;
+
+            try {
+                const payload = {
+                    contents: [{ role: "user", parts: [{ text: prompt }] }],
+                    generationConfig: { temperature: 0.6, maxOutputTokens: 1500 } 
+                };
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${geminiFlashApiKey}`;
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(`Erro da API ao gerar atividades (${response.status}): ${errorData?.error?.message || response.statusText}`);
+                }
+                const result = await response.json();
+                if (result.candidates?.[0]?.content?.parts?.[0]?.text) {
+                    const activities = result.candidates[0].content.parts[0].text;
+                    generatedActivityText.textContent = activities;
+                    activityDisplayContainer.style.display = 'block';
+                    btnExportActivityPdf.style.display = 'inline-flex';
+                } else {
+                    throw new Error("Não foi possível obter as atividades da resposta da API.");
+                }
+            } catch (error) {
+                displayErrorMessage(error.message);
+            } finally {
+                loadingIndicator.style.display = 'none';
+            }
+        }
+        
+        async function pesquisarComIA() {
+            const query = searchInput.value.trim();
+            if (!query) {
+                displayErrorMessage("Por favor, introduza um termo para pesquisar.");
+                return;
+            }
+             if (!geminiFlashApiKey) {
+                displayErrorMessage("A API key para o serviço Gemini não está configurada.");
+                return;
+            }
+            clearErrorMessage();
+            loadingIndicator.textContent = "A pesquisar...";
+            loadingIndicator.style.display = 'block';
+            searchResultsContainer.style.display = 'none';
+            btnClearSearch.style.display = 'none';
+
+            const prompt = `Responda à seguinte pesquisa de forma informativa e concisa: "${query}"`;
+            try {
+                const payload = {
+                    contents: [{ role: "user", parts: [{ text: prompt }] }],
+                    generationConfig: { temperature: 0.5, maxOutputTokens: 1000 }
+                };
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${geminiFlashApiKey}`;
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(`Erro da API ao pesquisar (${response.status}): ${errorData?.error?.message || response.statusText}`);
+                }
+                const result = await response.json();
+                if (result.candidates?.[0]?.content?.parts?.[0]?.text) {
+                    const searchResult = result.candidates[0].content.parts[0].text;
+                    searchResultsText.textContent = searchResult;
+                    searchResultsContainer.style.display = 'block';
+                    btnClearSearch.style.display = 'inline-flex';
+                } else {
+                    throw new Error("Não foi possível obter resultados da pesquisa da API.");
+                }
+            } catch (error) {
+                displayErrorMessage(error.message);
+            } finally {
+                loadingIndicator.style.display = 'none';
+            }
+        }
+
+        async function translateTextWithAI() {
+            const textToTranslate = sourceTextToTranslate.value.trim();
+            const sourceLang = sourceLanguageSelect.value;
+            const targetLang = targetLanguageSelect.value;
+
+            if (!textToTranslate) {
+                displayErrorMessage("Por favor, introduza o texto que deseja traduzir.");
+                return;
+            }
+            if (!geminiFlashApiKey) {
+                displayErrorMessage("A API key para o serviço Gemini não está configurada.");
+                return;
+            }
+            clearErrorMessage();
+            loadingIndicator.textContent = "A traduzir texto...";
+            loadingIndicator.style.display = 'block';
+            translatedTextContainer.style.display = 'none';
+            btnPlayTranslatedText.style.display = 'none';
+
+            let translationPrompt = "";
+            if (sourceLang === "auto") {
+                translationPrompt = `Identifique a língua do seguinte texto e traduza-o para ${targetLanguageSelect.options[targetLanguageSelect.selectedIndex].text}:\n\n"${textToTranslate}"`;
+            } else {
+                translationPrompt = `Traduza o seguinte texto de ${sourceLanguageSelect.options[sourceLanguageSelect.selectedIndex].text} para ${targetLanguageSelect.options[targetLanguageSelect.selectedIndex].text}:\n\n"${textToTranslate}"`;
+            }
+            
+            try {
+                const payload = {
+                    contents: [{ role: "user", parts: [{ text: translationPrompt }] }],
+                    generationConfig: { temperature: 0.3, maxOutputTokens: textToTranslate.length + 200 } 
+                };
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${geminiFlashApiKey}`;
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(`Erro da API ao traduzir (${response.status}): ${errorData?.error?.message || response.statusText}`);
+                }
+                const result = await response.json();
+                if (result.candidates?.[0]?.content?.parts?.[0]?.text) {
+                    const translatedText = result.candidates[0].content.parts[0].text;
+                    translatedTextOutput.textContent = translatedText;
+                    translatedTextContainer.style.display = 'block';
+                    btnPlayTranslatedText.style.display = 'inline-flex';
+                } else {
+                    throw new Error("Não foi possível obter a tradução da resposta da API.");
+                }
+            } catch (error) {
+                displayErrorMessage(error.message);
+            } finally {
+                loadingIndicator.style.display = 'none';
+            }
+        }
+
+
+        function exportTextToPdf(text, filename = "documento.pdf") {
+            if (!text || text.trim() === "") {
+                displayErrorMessage("Não há conteúdo para exportar para PDF.");
+                return;
+            }
+            try {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                
+                const margin = 15;
+                const pageWidth = doc.internal.pageSize.getWidth();
+                const pageHeight = doc.internal.pageSize.getHeight();
+                const usableWidth = pageWidth - 2 * margin;
+                let y = margin;
+                doc.setFontSize(12);
+                doc.setTextColor(0,0,0); 
+
+                const lines = doc.splitTextToSize(text, usableWidth);
+
+                lines.forEach(line => {
+                    if (y + 10 > pageHeight - margin) { 
+                        doc.addPage();
+                        y = margin;
+                    }
+                    doc.text(line, margin, y);
+                    y += 7; 
+                });
+                
+                doc.save(filename);
+            } catch (error) {
+                console.error("Erro ao exportar para PDF:", error);
+                displayErrorMessage("Ocorreu um erro ao tentar exportar o documento para PDF.");
             }
         }
 
@@ -807,8 +1368,8 @@
                     aiGeneratedImageElement.src = `data:image/png;base64,${base64ImageData}`;
                     aiGeneratedImageElement.style.display = 'block';
                     aiImagePlaceholder.style.display = 'none';
-                    btnDownloadAiImage.style.display = 'inline-block';
-                    btnDeleteAiImage.style.display = 'inline-block';
+                    btnDownloadAiImage.style.display = 'inline-flex';
+                    btnDeleteAiImage.style.display = 'inline-flex';
                 } else {
                     throw new Error("Não foi possível obter a imagem da resposta da API. A resposta pode não conter os dados esperados.");
                 }
@@ -915,7 +1476,7 @@
             }
         }
 
-        async function gerarFalaComIA(textToSpeak, sourceTitle = "Texto", isMultiSpeaker = false, singleVoiceName = "Charon") { 
+        async function gerarFalaComIA(textToSpeak, sourceTitle = "Texto", isMultiSpeaker = false, voice1 = "Charon", voice2 = "Kore") { 
             if (!textToSpeak || textToSpeak.trim() === "") {
                 displayErrorMessage("Não há texto para converter em fala.");
                 audioPlayerContainer.style.display = 'none';
@@ -936,18 +1497,20 @@
                 let speechConfigPayload = {};
 
                 if (isMultiSpeaker) {
+                    const speaker1Voice = document.getElementById('podcastSpeaker1Voice')?.value || voice1;
+                    const speaker2Voice = document.getElementById('podcastSpeaker2Voice')?.value || voice2;
                     speechConfigPayload = { 
                         multiSpeakerVoiceConfig: {
-                            speakerVoiceConfigs: [ // Vozes para o diálogo do podcast
-                                { speaker: "Speaker 1", voiceConfig: { prebuiltVoiceConfig: { voice_name: "Charon" } } }, 
-                                { speaker: "Speaker 2", voiceConfig: { prebuiltVoiceConfig: { voice_name: "Kore" } } }   
+                            speakerVoiceConfigs: [ 
+                                { speaker: "Speaker 1", voiceConfig: { prebuiltVoiceConfig: { voice_name: speaker1Voice } } }, 
+                                { speaker: "Speaker 2", voiceConfig: { prebuiltVoiceConfig: { voice_name: speaker2Voice } } }   
                             ]
                         }
                     };
                 } else {
                      speechConfigPayload = { 
                         voiceConfig: { 
-                            prebuiltVoiceConfig: { voice_name: singleVoiceName } // Usa a voz passada como argumento
+                            prebuiltVoiceConfig: { voice_name: voice1 } 
                         }
                     };
                 }
@@ -1066,3 +1629,4 @@
 
 </body>
 </html>
+
