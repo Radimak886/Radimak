@@ -7,6 +7,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.min.js"></script>
     <style>
         :root {
             --primary-red: #e50914; 
@@ -17,12 +19,16 @@
             --dark-gray-text: #808080; 
             --accent-color-1: #f5a623; /* Laranja para imagens */
             --accent-color-2: #bd10e0; /* Roxo para TTS de texto */
-            --accent-color-3: #7ed321; /* Verde para TTS de ficheiro */
+            --accent-color-3: #7ed321; /* Verde para TTS de ficheiro e PDF export */
             --accent-color-4: #6c757d; /* Cinza para Falar com IA */
             --accent-color-5: #e91e63; /* Rosa para Gerador de Guiões */
             --accent-color-6: #00bcd4; /* Ciano para Gerador de Atividades */
-            --accent-color-7: #3f51b5; /* Indigo para Pesquisa */
+            --accent-color-7: #3f51b5; /* Indigo para Pesquisa e Chat */
             --accent-color-8: #009688; /* Teal para Tradutor */
+            --accent-color-9: #ff5722; /* Deep Orange para Slides */
+            --accent-color-10: #607d8b; /* Blue Grey para Relatórios */
+            --accent-color-11: #4CAF50; /* Verde para Gerador de Ideias */
+            --accent-color-12: #D2691E; /* Chocolate Brown para Receitas */
             --border-color: #303030; 
             --shadow-color: rgba(0, 0, 0, 0.2); 
         }
@@ -38,6 +44,7 @@
             color: var(--light-text); 
             min-height: 100vh;
             box-sizing: border-box;
+            overflow-x: hidden; 
         }
 
         .top-bar {
@@ -50,8 +57,9 @@
             justify-content: space-between;
             align-items: center;
             box-sizing: border-box;
-            position: sticky; 
+            position: fixed; 
             top: 0;
+            left: 0;
             z-index: 1000; 
         }
 
@@ -64,39 +72,63 @@
             letter-spacing: 1px;
         }
         
-        nav ul {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-            display: flex;
-            flex-wrap: wrap; 
-            justify-content: center; 
-            gap: 2px; 
-        }
-
-        nav ul li a {
-            color: var(--medium-gray-text);
-            text-decoration: none;
-            padding: 8px 10px; 
-            border-radius: 6px;
+        #mainMenuButton {
+            background-color: transparent;
+            border: 1px solid var(--primary-red);
+            color: var(--primary-red);
+            padding: 8px 12px;
+            font-size: 0.9em;
+            cursor: pointer;
+            border-radius: 5px;
             transition: background-color 0.3s ease, color 0.3s ease;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            gap: 5px; 
-            font-size: 0.75em; 
         }
-
-        nav ul li a:hover, nav ul li a.active {
+        #mainMenuButton:hover {
             background-color: var(--primary-red);
             color: var(--light-text);
         }
-        nav ul li a .fa-solid {
-            transition: transform 0.2s ease-in-out;
-            font-size: 0.9em; 
+        #mainMenuButton .fa-solid {
+            margin-right: 8px;
         }
-        nav ul li a:hover .fa-solid {
-            transform: scale(1.1);
+
+        .side-menu {
+            height: 100%;
+            width: 0; 
+            position: fixed;
+            z-index: 1001; 
+            top: 0;
+            left: 0;
+            background-color: #111; 
+            overflow-x: hidden;
+            transition: 0.3s ease-in-out; /* Transição mais suave */
+            padding-top: 60px; 
+            box-shadow: 3px 0px 10px rgba(0,0,0,0.5);
+        }
+        .side-menu a {
+            padding: 10px 15px 10px 25px;
+            text-decoration: none;
+            font-size: 1.0em; 
+            color: var(--medium-gray-text);
+            display: block;
+            transition: 0.3s;
+            white-space: nowrap;
+        }
+        .side-menu a:hover, .side-menu a.active {
+            color: var(--primary-red);
+            background-color: #222;
+        }
+        .side-menu .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 25px;
+            font-size: 36px;
+            margin-left: 50px;
+            color: var(--light-text);
+            cursor: pointer;
+        }
+        .side-menu a .fa-solid {
+            margin-right: 10px;
+            width: 20px; 
+            text-align: center;
         }
 
 
@@ -105,7 +137,8 @@
             max-width: 960px; 
             padding: 20px; 
             box-sizing: border-box;
-            margin-top: 60px; 
+            margin-top: 80px; 
+            transition: margin-left .3s ease-in-out; 
         }
         
         .generator-section {
@@ -143,6 +176,19 @@
             font-size: 1.1em;
             margin-top: 15px;
             margin-bottom: 8px;
+        }
+        .checkbox-group {
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+        .checkbox-group label {
+            margin-right: 15px;
+            color: var(--medium-gray-text);
+            font-size: 0.9em;
+        }
+        .checkbox-group input[type="checkbox"] {
+            margin-right: 5px;
+            accent-color: var(--primary-red);
         }
 
 
@@ -198,40 +244,11 @@
             box-shadow: 0 6px 12px rgba(0,0,0,0.2); 
         }
 
-        /* Cores específicas dos botões */
-        #btnRecordVoice { background-color: var(--accent-color-4); }
-        #btnRecordVoice:hover { background-color: #5a5a5a; }
-        #btnRecordVoice.recording { background-color: var(--primary-red); }
-        #btnRecordVoice.recording:hover { background-color: #c50812; }
+        #btnSendChatMessage { background-color: var(--accent-color-7); } 
+        #btnSendChatMessage:hover { background-color: #303f9f; }
 
-        #btnProcessFileToSpeech { background-color: var(--accent-color-3); }
-        #btnProcessFileToSpeech:hover { background-color: #6ab01c; }
-
-        #btnGenerateSpeechFromText { background-color: var(--accent-color-2); }
-        #btnGenerateSpeechFromText:hover { background-color: #a30dbd; }
-        
-        #btnGenerateImageFromText { background-color: var(--accent-color-1); }
-        #btnGenerateImageFromText:hover { background-color: #d88c1b; }
-
-        #btnDownloadAiImage { background-color: var(--primary-red); } 
-        #btnDownloadAiImage:hover { background-color: #c50812; }
-
-        #btnDeleteAiImage { background-color: var(--dark-gray-text); } 
-        #btnDeleteAiImage:hover { background-color: #666666; }
-        
-        #btnGenerateScript, #btnPlayScript { background-color: var(--accent-color-5); }
-        #btnGenerateScript:hover, #btnPlayScript:hover { background-color: #c2185b; }
-
-        #btnGenerateActivity { background-color: var(--accent-color-6); }
-        #btnGenerateActivity:hover { background-color: #0097a7; }
-        
-        #btnSearchAI, #btnClearSearch { background-color: var(--accent-color-7); }
-        #btnSearchAI:hover, #btnClearSearch:hover { background-color: #303f9f; }
-        #btnClearSearch { background-color: var(--dark-gray-text); }
-        #btnClearSearch:hover { background-color: #666; }
-
-        #btnTranslateText, #btnPlayTranslatedText { background-color: var(--accent-color-8); }
-        #btnTranslateText:hover, #btnPlayTranslatedText:hover { background-color: #00796b; }
+        #btnGenerateRecipe { background-color: var(--accent-color-12); }
+        #btnGenerateRecipe:hover { background-color: #b85b1a; }
 
 
         #errorMessage { 
@@ -301,7 +318,9 @@
             background-color: #c50812;
         }
         
-        #audioPlayerContainer, #voiceChatResponseContainer, #scriptDisplayContainer, #activityDisplayContainer, #searchResultsContainer, #translatedTextContainer {
+        #audioPlayerContainer, #voiceChatResponseContainer, #scriptDisplayContainer, 
+        #activityDisplayContainer, #searchResultsContainer, #translatedTextContainer, 
+        #slideContentContainer, #reportContentContainer, #ideasDisplayContainer, #recipeDisplayContainer {
             margin-top: 20px; 
             text-align: center; 
         }
@@ -310,7 +329,9 @@
             max-width: 550px; 
             border-radius: 6px;
         }
-        #voiceChatResponseText, #generatedScriptText, #generatedActivityText, #searchResultsText, #translatedTextOutput {
+        #voiceChatResponseText, #generatedScriptText, #generatedActivityText, 
+        #searchResultsText, #translatedTextOutput, #generatedSlideContent, 
+        #generatedReportContent, #generatedIdeasText, #generatedRecipeText {
             background-color: #2b2b2b; 
             padding: 15px;
             border-radius: 6px;
@@ -336,29 +357,29 @@
 
         @media (max-width: 768px) {
             .top-bar {
-                flex-direction: column;
-                padding: 10px; 
-                 position: static; 
-            }
-            .main-content-area {
-                margin-top: 0; 
+                padding: 10px 15px;
             }
             .top-bar .main-title {
-                font-size: 1.5em; 
-                margin-bottom: 10px;
+                font-size: 1.3em; 
             }
-            nav ul {
-                gap: 3px; 
+            #mainMenuButton {
+                font-size: 0.8em;
+                padding: 6px 10px;
             }
-            nav ul li a {
-                padding: 8px; 
-                font-size: 0.7em; 
-                gap: 4px;
+            .side-menu {
+                padding-top: 50px;
             }
-            nav ul li a .fa-solid {
-                font-size: 0.8em; 
+            .side-menu a {
+                font-size: 1em;
+                padding: 8px 10px 8px 20px;
+            }
+            .side-menu .close-btn {
+                top: 10px;
+                right: 20px;
+                font-size: 30px;
             }
             .main-content-area {
+                margin-top: 60px; 
                 padding: 15px 10px;
             }
             .generator-section h2 {
@@ -381,21 +402,28 @@
 <body>
     <div class="top-bar">
         <h1 class="main-title">Rad IA 2.0</h1>
-        <nav>
-            <ul>
-                <li><a href="#" class="nav-link active" data-target="talkToAiSection"><i class="fa-solid fa-microphone-lines"></i> Falar</a></li>
-                <li><a href="#" class="nav-link" data-target="fileToPodcastSection"><i class="fa-solid fa-file-audio"></i> Podcast</a></li>
-                <li><a href="#" class="nav-link" data-target="textToSpeechSection"><i class="fa-solid fa-comment-dots"></i> Texto-Fala</a></li>
-                <li><a href="#" class="nav-link" data-target="imageGeneratorSection"><i class="fa-solid fa-image"></i> Imagem</a></li>
-                <li><a href="#" class="nav-link" data-target="scriptGeneratorSection"><i class="fa-solid fa-scroll"></i> Guião</a></li>
-                <li><a href="#" class="nav-link" data-target="translatorSection"><i class="fa-solid fa-language"></i> Tradutor</a></li>
-                <li><a href="#" class="nav-link" data-target="activityGeneratorSection"><i class="fa-solid fa-graduation-cap"></i> Atividades</a></li>
-                <li><a href="#" class="nav-link" data-target="searchAiSection"><i class="fa-solid fa-search"></i> Pesquisa</a></li>
-            </ul>
-        </nav>
+        <button id="mainMenuButton"><i class="fa-solid fa-bars"></i> RAD IA MENU</button>
     </div>
 
-    <div class="main-content-area">
+    <div id="sideMenu" class="side-menu">
+        <a href="javascript:void(0)" class="close-btn" id="closeMenuButton">&times;</a>
+        <a href="#" class="tool-link active" data-target="talkToAiSection"><i class="fa-solid fa-microphone-lines"></i> Falar</a>
+        <a href="#" class="tool-link" data-target="fileToPodcastSection"><i class="fa-solid fa-file-audio"></i> Podcast</a>
+        <a href="#" class="tool-link" data-target="textToSpeechSection"><i class="fa-solid fa-comment-dots"></i> Texto-Fala</a>
+        <a href="#" class="tool-link" data-target="imageGeneratorSection"><i class="fa-solid fa-image"></i> Imagem</a>
+        <a href="#" class="tool-link" data-target="scriptGeneratorSection"><i class="fa-solid fa-scroll"></i> Guião</a>
+        <a href="#" class="tool-link" data-target="translatorSection"><i class="fa-solid fa-language"></i> Tradutor</a>
+        <a href="#" class="tool-link" data-target="ideaGeneratorSection"><i class="fa-solid fa-lightbulb"></i> Ideias</a>
+        <a href="#" class="tool-link" data-target="recipeGeneratorSection"><i class="fa-solid fa-utensils"></i> Receitas</a>
+        <a href="#" class="tool-link" data-target="activityGeneratorSection"><i class="fa-solid fa-graduation-cap"></i> Atividades</a>
+        <a href="#" class="tool-link" data-target="slideGeneratorSection"><i class="fa-solid fa-person-chalkboard"></i> Slides</a>
+        <a href="#" class="tool-link" data-target="reportGeneratorSection"><i class="fa-solid fa-file-signature"></i> Relatórios</a>
+        <a href="#" class="tool-link" data-target="searchAiSection"><i class="fa-solid fa-search"></i> Pesquisa</a>
+        <a href="#" class="tool-link" data-target="radimakChatSection"><i class="fa-solid fa-robot"></i> Radimak</a>
+    </div>
+
+
+    <div class="main-content-area" id="mainContentArea">
         <p id="errorMessage"></p> 
 
         <div id="talkToAiSection" class="generator-section active">
@@ -426,7 +454,7 @@
             </div>
             <div class="button-group">
                 <button id="btnProcessFileToSpeech"><i class="fa-solid fa-podcast"></i> Gerar Diálogo em Áudio</button>
-                <button id="btnExportPdf" style="display:none;"><i class="fa-solid fa-file-pdf"></i> Exportar Guião para PDF</button>
+                <button id="btnExportPodcastScriptPdf" style="display:none;"><i class="fa-solid fa-file-pdf"></i> Exportar Guião para PDF</button>
             </div>
              <div id="podcastScriptDisplayContainer" style="display:none;">
                 <h3>Guião do Podcast Gerado:</h3>
@@ -495,29 +523,13 @@
                 <label for="sourceLanguageSelect">Língua de Origem:</label>
                 <select id="sourceLanguageSelect">
                     <option value="auto">Detetar Automaticamente</option>
-                    <option value="pt">Português</option>
-                    <option value="en">Inglês</option>
-                    <option value="es">Espanhol</option>
-                    <option value="fr">Francês</option>
-                    <option value="de">Alemão</option>
-                    <option value="it">Italiano</option>
-                    <option value="ja">Japonês</option>
-                    <option value="ko">Coreano</option>
-                    <option value="zh">Chinês (Simplificado)</option>
+                    <option value="pt">Português</option> <option value="en">Inglês</option> <option value="es">Espanhol</option> <option value="fr">Francês</option> <option value="de">Alemão</option> <option value="it">Italiano</option> <option value="ja">Japonês</option> <option value="ko">Coreano</option> <option value="zh">Chinês (Simplificado)</option>
                 </select>
             </div>
             <div class="form-group">
                 <label for="targetLanguageSelect">Língua de Destino:</label>
                 <select id="targetLanguageSelect">
-                    <option value="pt">Português</option>
-                    <option value="en" selected>Inglês</option>
-                    <option value="es">Espanhol</option>
-                    <option value="fr">Francês</option>
-                    <option value="de">Alemão</option>
-                    <option value="it">Italiano</option>
-                    <option value="ja">Japonês</option>
-                    <option value="ko">Coreano</option>
-                    <option value="zh">Chinês (Simplificado)</option>
+                    <option value="pt">Português</option> <option value="en" selected>Inglês</option> <option value="es">Espanhol</option> <option value="fr">Francês</option> <option value="de">Alemão</option> <option value="it">Italiano</option> <option value="ja">Japonês</option> <option value="ko">Coreano</option> <option value="zh">Chinês (Simplificado)</option>
                 </select>
             </div>
             <div class="form-group">
@@ -535,6 +547,61 @@
                 </div>
             </div>
         </div>
+        
+        <div id="ideaGeneratorSection" class="generator-section">
+            <h2><i class="fa-solid fa-lightbulb"></i> Gerador de Ideias e Brainstorming</h2>
+            <textarea id="ideaTopicInput" placeholder="Introduza um tópico, problema ou questão para brainstorming..."></textarea>
+            <div class="button-group">
+                <button id="btnGenerateIdeas"><i class="fa-solid fa-brain"></i> Gerar Ideias</button>
+                <button id="btnExportIdeasPdf" style="display:none;"><i class="fa-solid fa-file-pdf"></i> Exportar Ideias para PDF</button>
+            </div>
+            <div id="ideasDisplayContainer" style="display:none;">
+                <h3>Ideias Geradas:</h3>
+                <div id="generatedIdeasText"></div>
+            </div>
+        </div>
+
+         <div id="recipeGeneratorSection" class="generator-section">
+            <h2><i class="fa-solid fa-utensils"></i> Gerador de Receitas</h2>
+            <div class="form-group">
+                <label for="recipeIngredients">Ingredientes (separados por vírgula):</label>
+                <textarea id="recipeIngredients" placeholder="Ex: tomate, cebola, alho, frango, arroz"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="recipeCuisineType">Tipo de Cozinha (opcional):</label>
+                <select id="recipeCuisineType">
+                    <option value="">Qualquer</option>
+                    <option value="Italiana">Italiana</option>
+                    <option value="Mexicana">Mexicana</option>
+                    <option value="Indiana">Indiana</option>
+                    <option value="Chinesa">Chinesa</option>
+                    <option value="Japonesa">Japonesa</option>
+                    <option value="Brasileira">Brasileira</option>
+                    <option value="Mediterrânea">Mediterrânea</option>
+                    <option value="Vegetariana">Vegetariana</option>
+                    <option value="Vegana">Vegana</option>
+                    <option value="Rápida e Fácil">Rápida e Fácil</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="recipeDifficulty">Nível de Dificuldade (opcional):</label>
+                <select id="recipeDifficulty">
+                    <option value="">Qualquer</option>
+                    <option value="Fácil">Fácil</option>
+                    <option value="Médio">Médio</option>
+                    <option value="Difícil">Difícil</option>
+                </select>
+            </div>
+            <div class="button-group">
+                <button id="btnGenerateRecipe"><i class="fa-solid fa-hat-chef"></i> Gerar Receita</button>
+                <button id="btnExportRecipePdf" style="display:none;"><i class="fa-solid fa-file-pdf"></i> Exportar Receita para PDF</button>
+                <button id="btnPlayRecipe" style="display:none;"><i class="fa-solid fa-volume-high"></i> ✨ Ouvir Receita</button>
+            </div>
+            <div id="recipeDisplayContainer" style="display:none;">
+                <h3>Receita Gerada:</h3>
+                <div id="generatedRecipeText"></div>
+            </div>
+        </div>
 
 
         <div id="activityGeneratorSection" class="generator-section">
@@ -542,28 +609,29 @@
             <div class="form-group">
                 <label for="activityYearSelect">Ano Escolar:</label>
                 <select id="activityYearSelect">
-                    <option value="6">6º Ano - Ensino Fundamental</option>
-                    <option value="7">7º Ano - Ensino Fundamental</option>
-                    <option value="8">8º Ano - Ensino Fundamental</option>
-                    <option value="9">9º Ano - Ensino Fundamental</option>
+                    <option value="6">6º Ano - Ensino Fundamental</option> <option value="7">7º Ano - Ensino Fundamental</option> <option value="8">8º Ano - Ensino Fundamental</option> <option value="9">9º Ano - Ensino Fundamental</option>
                 </select>
             </div>
             <div class="form-group">
                 <label for="activitySubjectSelect">Matéria:</label>
-                <select id="activitySubjectSelect">
-                    </select>
+                <select id="activitySubjectSelect"> </select>
             </div>
             <div class="form-group">
                 <label for="activitySpecificContentSelect">Conteúdo Específico:</label>
-                 <select id="activitySpecificContentSelect">
-                    </select>
+                 <select id="activitySpecificContentSelect"> </select>
+            </div>
+            <div class="form-group">
+                <label for="activityQuestionTypeSelect">Tipo de Questão:</label>
+                 <select id="activityQuestionTypeSelect">
+                    <option value="Ambas">Ambas (Objetivas e Subjetivas)</option>
+                    <option value="Objetivas">Apenas Objetivas (ex: múltipla escolha, V/F)</option>
+                    <option value="Subjetivas">Apenas Subjetivas (ex: dissertativas, problemas)</option>
+                 </select>
             </div>
             <div class="form-group">
                 <label for="activityNumQuestionsSelect">Número de Questões:</label>
                 <select id="activityNumQuestionsSelect">
-                    <option value="5">5 Questões</option>
-                    <option value="10">10 Questões</option>
-                    <option value="15">15 Questões</option>
+                    <option value="5">5 Questões</option> <option value="10">10 Questões</option> <option value="15">15 Questões</option>
                 </select>
             </div>
             <div class="button-group">
@@ -578,16 +646,77 @@
             </div>
         </div>
 
+        <div id="slideGeneratorSection" class="generator-section">
+            <h2><i class="fa-solid fa-person-chalkboard"></i> Gerador de Slides</h2>
+            <div class="form-group">
+                <label for="slideTopicInput">Tema Principal dos Slides:</label>
+                <textarea id="slideTopicInput" placeholder="Ex: A Revolução Francesa, O Ciclo da Água, Introdução à Álgebra..."></textarea>
+            </div>
+            <div class="form-group">
+                <label for="slideNumSlidesInput">Número Aproximado de Slides:</label>
+                <select id="slideNumSlidesInput">
+                    <option value="5">5 Slides</option>
+                    <option value="10" selected>10 Slides</option>
+                    <option value="15">15 Slides</option>
+                </select>
+            </div>
+             <div class="checkbox-group">
+                <input type="checkbox" id="slideIncludeImagesCheckbox" checked>
+                <label for="slideIncludeImagesCheckbox">Sugerir Imagens (a IA descreverá imagens relevantes)</label>
+            </div>
+            <div class="button-group">
+                <button id="btnGenerateSlide"><i class="fa-solid fa-file-powerpoint"></i> Gerar Conteúdo dos Slides</button>
+                 <button id="btnExportSlidePdf" style="display:none;"><i class="fa-solid fa-file-pdf"></i> Exportar para PDF</button>
+                 <button id="btnExportSlidePptx" style="display:none;"><i class="fa-solid fa-file-powerpoint"></i> Exportar para PPTX</button>
+            </div>
+            <div id="slideContentContainer" style="display:none;">
+                <h3>Conteúdo dos Slides Gerado:</h3>
+                <div id="generatedSlideContent"></div>
+            </div>
+        </div>
+
+        <div id="reportGeneratorSection" class="generator-section">
+            <h2><i class="fa-solid fa-file-signature"></i> Gerador de Relatórios</h2>
+            <div class="form-group">
+                <label for="reportTopicInput">Tema do Relatório:</label>
+                <textarea id="reportTopicInput" placeholder="Ex: Impacto das Redes Sociais na Juventude, Fontes de Energia Renovável..."></textarea>
+            </div>
+             <div class="form-group">
+                <label for="reportAuthorInput">Autor(es) (opcional):</label>
+                <input type="text" id="reportAuthorInput" placeholder="Seu nome ou nomes dos autores">
+            </div>
+            <div class="button-group">
+                <button id="btnGenerateReport"><i class="fa-solid fa-book-journal-whills"></i> Gerar Estrutura do Relatório</button>
+                <button id="btnExportReportPdf" style="display:none;"><i class="fa-solid fa-file-pdf"></i> Exportar Relatório para PDF</button>
+            </div>
+            <div id="reportContentContainer" style="display:none;">
+                <h3>Estrutura do Relatório Gerada:</h3>
+                <div id="generatedReportContent"></div>
+            </div>
+        </div>
+
+
         <div id="searchAiSection" class="generator-section">
             <h2><i class="fa-solid fa-magnifying-glass"></i> Pesquisa com IA</h2>
             <textarea id="searchInput" placeholder="O que deseja pesquisar?"></textarea>
             <div class="button-group">
                 <button id="btnSearchAI"><i class="fa-solid fa-paper-plane"></i> Pesquisar</button>
-                <button id="btnClearSearch" style="display:none;"><i class="fa-solid fa-eraser"></i> Limpar Resultados</button>
+                <button id="btnClearSearch" style="display:none;"><i class="fa-solid fa-eraser"></i> Limpar</button>
+                <button id="btnExportSearchPdf" style="display:none;"><i class="fa-solid fa-file-pdf"></i> Exportar Pesquisa para PDF</button>
             </div>
             <div id="searchResultsContainer" style="display:none;">
                 <h3>Resultados da Pesquisa:</h3>
                 <div id="searchResultsText"></div>
+            </div>
+        </div>
+
+        <div id="radimakChatSection" class="generator-section">
+            <h2><i class="fa-solid fa-robot"></i> Radimak Chat</h2>
+            <div id="chatMessagesContainer" style="height: 300px; overflow-y: auto; border: 1px solid var(--border-color); padding: 10px; margin-bottom: 10px; background-color: var(--dark-background); border-radius: 6px;">
+                </div>
+            <textarea id="chatInput" placeholder="Escreva a sua dúvida ou mensagem para o Radimak..." style="min-height: 50px;"></textarea>
+            <div class="button-group">
+                <button id="btnSendChatMessage"><i class="fa-solid fa-paper-plane"></i> Enviar Mensagem</button>
             </div>
         </div>
         
@@ -610,45 +739,78 @@
         
         const conteudosPorMateriaAno = {
             "Matemática": {
-                "6": ["Números Naturais e Operações Fundamentais", "Múltiplos e Divisores (MMC e MDC)", "Frações: Conceitos e Operações", "Números Decimais e Operações", "Porcentagem Básica", "Geometria: Figuras Planas e Sólidos Geométricos", "Medidas de Comprimento, Massa, Capacidade e Tempo"],
-                "7": ["Números Inteiros: Operações e Ordenação", "Números Racionais: Frações e Decimais (positivos e negativos)", "Equações de 1º Grau com uma Incógnita", "Razão e Proporção", "Regra de Três Simples", "Porcentagem e Juros Simples", "Ângulos e suas Classificações", "Polígonos: Classificação e Propriedades", "Área de Figuras Planas (quadrado, retângulo, triângulo)"],
-                "8": ["Números Reais e Potenciação com Expoente Inteiro", "Radiciação", "Produtos Notáveis e Fatoração Algébrica", "Sistemas de Equações de 1º Grau com Duas Incógnitas", "Equações de 2º Grau (introdução, fórmula de Bhaskara)", "Teorema de Pitágoras", "Semelhança de Triângulos", "Volume de Prismas e Cilindros", "Estatística: Leitura e Interpretação de Gráficos e Tabelas"],
-                "9": ["Potenciação e Radiciação (revisão e aprofundamento)", "Função Afim (1º Grau): Gráfico e Propriedades", "Função Quadrática (2º Grau): Gráfico e Vértice", "Equações de 2º Grau Completas e Incompletas", "Relações Métricas no Triângulo Retângulo (além de Pitágoras)", "Trigonometria no Triângulo Retângulo (seno, cosseno, tangente)", "Semelhança de Figuras Geométricas", "Juros Compostos", "Noções de Probabilidade"]
+                "6": ["Números Naturais e Operações Fundamentais", "Múltiplos e Divisores (MMC e MDC)", "Frações: Conceitos e Operações", "Números Decimais e Operações", "Porcentagem Básica", "Geometria: Figuras Planas e Sólidos Geométricos", "Medidas de Comprimento, Massa, Capacidade e Tempo", "Introdução à Álgebra (sentenças matemáticas)"],
+                "7": ["Números Inteiros: Operações e Ordenação", "Números Racionais: Frações e Decimais (positivos e negativos)", "Equações de 1º Grau com uma Incógnita", "Sistemas de Equações de 1º Grau (método da substituição)", "Razão e Proporção", "Regra de Três Simples e Composta", "Porcentagem e Juros Simples", "Ângulos e suas Classificações, Ângulos Opostos pelo Vértice", "Polígonos: Classificação, Propriedades e Soma dos Ângulos Internos", "Área de Figuras Planas (quadrado, retângulo, triângulo, trapézio, losango, círculo)"],
+                "8": ["Números Reais e Potenciação com Expoente Inteiro e Fracionário", "Radiciação e suas Propriedades", "Produtos Notáveis e Fatoração Algébrica", "Sistemas de Equações de 1º Grau com Duas Incógnitas (método da adição)", "Equações de 2º Grau Incompletas", "Teorema de Pitágoras e suas aplicações", "Semelhança de Triângulos e Teorema de Tales", "Volume de Prismas e Cilindros", "Estatística: Média, Moda e Mediana", "Noções de Probabilidade"],
+                "9": ["Potenciação e Radiciação (revisão e aprofundamento)", "Função Afim (1º Grau): Gráfico, Coeficientes e Raiz", "Função Quadrática (2º Grau): Gráfico, Vértice e Raízes (Fórmula de Bhaskara)", "Equações de 2º Grau Completas", "Relações Métricas no Triângulo Retângulo (além de Pitágoras)", "Trigonometria no Triângulo Retângulo (seno, cosseno, tangente de 30º, 45º, 60º)", "Circunferência e Círculo: Comprimento e Área", "Semelhança de Figuras Geométricas (polígonos e sólidos)", "Juros Compostos", "Estatística: Desvio Padrão e Variância (introdução)"]
             },
-            "Português": {
-                "6": ["Interpretação de Textos Diversos (narrativos, descritivos, informativos)", "Gêneros Textuais: Conto, Fábula, Notícia", "Substantivos (classificação, flexão)", "Adjetivos e Locuções Adjetivas", "Artigos Definidos e Indefinidos", "Pronomes Pessoais", "Verbos: Tempos do Modo Indicativo (presente, pretérito perfeito, futuro do presente)", "Ortografia: Uso de S/Z, X/CH, G/J", "Pontuação Básica"],
-                "7": ["Interpretação de Textos Argumentativos Simples", "Gêneros Textuais: Crônica, Reportagem, Poema", "Pronomes Possessivos, Demonstrativos e Indefinidos", "Advérbios e Locuções Adverbiais", "Preposições e Conjunções Coordenativas", "Verbos: Tempos do Modo Subjuntivo (presente, pretérito imperfeito)", "Concordância Nominal Básica", "Figuras de Linguagem (metáfora, comparação)", "Coesão e Coerência Textual"],
-                "8": ["Interpretação de Textos Literários e Não Literários (análise crítica)", "Gêneros Textuais: Artigo de Opinião, Resenha, Texto Teatral", "Vozes Verbais (ativa, passiva, reflexiva)", "Conjunções Subordinativas", "Período Composto por Coordenação e Subordinação (orações adjetivas e adverbiais)", "Concordância Verbal Básica", "Regência Nominal e Verbal (casos simples)", "Colocação Pronominal (próclise, mesóclise, ênclise)"],
-                "9": ["Análise de Discurso em Diferentes Textos", "Gêneros Textuais: Editorial, Manifesto, Seminário", "Funções da Linguagem", "Variação Linguística (regional, social, histórica)", "Sintaxe do Período Composto (aprofundamento)", "Pontuação Expressiva e Estilística", "Intertextualidade", "Literatura Brasileira (introdução a movimentos literários)"]
+            "Português": { 
+                "6": ["Interpretação de Textos Diversos", "Gêneros: Conto, Fábula, Notícia, Poema", "Substantivos", "Adjetivos", "Artigos", "Pronomes Pessoais", "Verbos (Modo Indicativo)", "Ortografia Básica", "Pontuação"],
+                "7": ["Interpretação Textual Avançada", "Gêneros: Crônica, Reportagem, Entrevista", "Pronomes (Possessivos, Demonstrativos, Indefinidos)", "Advérbios", "Preposições", "Conjunções Coordenativas", "Verbos (Modo Subjuntivo)", "Concordância Nominal"],
+                "8": ["Análise Crítica de Textos", "Gêneros: Artigo de Opinião, Resenha, Texto Teatral", "Vozes Verbais", "Conjunções Subordinativas", "Período Composto (Coordenação e Subordinação)", "Concordância Verbal", "Regência (casos simples)"],
+                "9": ["Análise de Discurso", "Gêneros: Editorial, Manifesto, Debate", "Funções da Linguagem", "Variação Linguística", "Sintaxe do Período Composto (aprofundamento)", "Pontuação Expressiva", "Intertextualidade", "Literatura Brasileira (movimentos)"]
             },
-            "Ciências": {
-                "6": ["O Universo e o Sistema Solar", "A Terra: Movimentos e Camadas", "Água no Planeta Terra (ciclo, estados físicos, importância)", "Solo: Formação e Tipos", "Ar Atmosférico: Composição e Importância", "Seres Vivos: Características e Classificação Básica (Reinos)", "Cadeias e Teias Alimentares"],
-                "7": ["Máquinas Simples e Transformações de Energia", "Fontes de Energia (renováveis e não renováveis)", "Calor e Temperatura: Propagação e Efeitos", "Som e Luz: Propriedades Básicas", "Ecossistemas Brasileiros", "Relações Ecológicas", "Impactos Ambientais (desmatamento, poluição)"],
-                "8": ["Corpo Humano: Organização Celular e Níveis de Organização", "Sistemas do Corpo Humano: Digestório, Respiratório, Circulatório e Excretor", "Sistema Nervoso e Sentidos", "Sistema Locomotor (ossos e músculos)", "Reprodução Humana e Sexualidade", "Saúde e Doenças (prevenção, vacinação)"],
-                "9": ["Genética: Hereditariedade e Leis de Mendel (introdução)", "Evolução das Espécies (ideias de Darwin e Lamarck)", "Química: Matéria, Átomos e Moléculas", "Tabela Periódica (elementos principais)", "Misturas e Separação de Misturas", "Reações Químicas (conceito básico)", "Física: Movimento, Força e Leis de Newton (introdução)"]
+            "Ciências": { 
+                "6": ["Universo e Sistema Solar", "Planeta Terra", "Água, Solo e Ar", "Seres Vivos (características, reinos)", "Cadeias Alimentares"],
+                "7": ["Máquinas Simples", "Energia (fontes, transformações)", "Calor e Temperatura", "Som e Luz", "Ecossistemas Brasileiros", "Relações Ecológicas", "Impactos Ambientais"],
+                "8": ["Corpo Humano (células, tecidos, órgãos, sistemas)", "Sistemas: Digestório, Respiratório, Circulatório, Excretor, Nervoso, Locomotor", "Reprodução Humana", "Saúde e Prevenção"],
+                "9": ["Genética (hereditariedade, DNA)", "Evolução das Espécies", "Química (matéria, átomos, moléculas, tabela periódica)", "Misturas", "Reações Químicas", "Física (movimento, força, Leis de Newton)"]
             },
-             "História": {
-                "6": ["O que é História? Fontes Históricas", "Pré-História: Paleolítico e Neolítico", "Antiguidade Oriental: Mesopotâmia e Egito", "Antiguidade Clássica: Grécia (Atenas e Esparta, Democracia, Cultura)", "Antiguidade Clássica: Roma (República e Império, Legado Cultural)"],
-                "7": ["A Formação da Europa Feudal", "Império Bizantino e o Mundo Islâmico Medieval", "As Cruzadas", "Renascimento Comercial e Urbano", "Grandes Navegações e a Descoberta da América", "Povos Indígenas da América antes da Conquista"],
-                "8": ["Iluminismo e a Revolução Francesa", "Revolução Industrial", "Independência dos Estados Unidos", "Período Napoleônico e o Congresso de Viena", "Independência das Colônias da América Espanhola", "Brasil Imperial: Primeiro Reinado e Período Regencial"],
-                "9": ["Brasil Imperial: Segundo Reinado e Crise da Monarquia", "Proclamação da República no Brasil e a República Velha", "Primeira Guerra Mundial", "Revolução Russa", "Crise de 1929 e o Período Entreguerras", "Segunda Guerra Mundial", "Guerra Fria e a Nova Ordem Mundial"]
+            "História": { 
+                "6": ["O que é História", "Pré-História", "Mesopotâmia e Egito", "Grécia Antiga", "Roma Antiga"],
+                "7": ["Europa Feudal", "Império Bizantino e Islamismo", "Cruzadas", "Renascimento Comercial e Urbano", "Grandes Navegações", "Povos Indígenas da América"],
+                "8": ["Iluminismo", "Revolução Francesa", "Revolução Industrial", "Independência dos EUA", "Período Napoleônico", "Independências na América Latina", "Brasil Imperial (1º Reinado, Regências)"],
+                "9": ["Brasil Imperial (2º Reinado)", "República Velha no Brasil", "1ª Guerra Mundial", "Revolução Russa", "Crise de 1929", "2ª Guerra Mundial", "Guerra Fria"]
             },
-            "Geografia": {
-                "6": ["O Espaço Geográfico e a Paisagem", "Orientação e Localização no Espaço (pontos cardeais, coordenadas)", "Representações Cartográficas (mapas, escalas)", "O Planeta Terra: Movimentos e Zonas Climáticas", "Relevo, Hidrografia e Vegetação do Brasil (introdução)", "População Brasileira: Formação e Distribuição"],
-                "7": ["Formação Territorial do Brasil", "Regiões Brasileiras: Aspectos Físicos, Econômicos e Sociais", "Urbanização Brasileira e Problemas Urbanos", "Atividades Econômicas no Brasil: Agropecuária, Indústria e Serviços", "Fontes de Energia e Recursos Minerais no Brasil"],
-                "8": ["Globalização e Blocos Econômicos Mundiais", "Continentes: Aspectos Físicos e Humanos (foco em América e África)", "Conflitos Mundiais Contemporâneos e Geopolítica", "Desenvolvimento e Subdesenvolvimento", "Questões Ambientais Globais (aquecimento global, desertificação)"],
-                "9": ["Europa: Aspectos Físicos, Econômicos e União Europeia", "Ásia: Potências Regionais e Diversidade Cultural (China, Índia, Japão)", "Oceania e Regiões Polares", "Redes Geográficas e Fluxos Mundiais (comércio, informação)", "Brasil no Contexto Global: Relações Internacionais e Desafios"]
+            "Geografia": { 
+                "6": ["Espaço Geográfico", "Orientação e Localização", "Cartografia", "Planeta Terra (movimentos, climas)", "Relevo, Hidrografia, Vegetação do Brasil", "População Brasileira"],
+                "7": ["Formação Territorial do Brasil", "Regiões Brasileiras", "Urbanização Brasileira", "Atividades Econômicas no Brasil", "Recursos Naturais do Brasil"],
+                "8": ["Globalização e Blocos Econômicos", "Continentes (América, África)", "Conflitos Mundiais", "Desenvolvimento e Subdesenvolvimento", "Questões Ambientais Globais"],
+                "9": ["Europa (aspectos físicos, UE)", "Ásia (potências regionais)", "Oceania e Regiões Polares", "Redes Geográficas", "Brasil no Contexto Global"]
+            },
+            "Inglês": {
+                "6": ["Greetings and Farewells", "Alphabet and Numbers (1-20)", "Colors", "Classroom Objects", "Family Members (basic)", "Verb 'to be' (am, is, are - affirmative, negative, interrogative)", "Simple Commands", "Animals (common pets and farm animals)"],
+                "7": ["Present Simple (daily routines, habits)", "Question Words (What, Who, Where, When, Why, How)", "Prepositions of Place (in, on, under, next to, between)", "Describing People (simple adjectives: tall, short, happy)", "Can/Can't (ability)", "Food and Drinks (common items)", "Telling Time (o'clock, half past)", "Days of the Week, Months of the Year"],
+                "8": ["Present Continuous (actions happening now)", "Past Simple (verb 'to be' - was, were)", "Past Simple (regular verbs - affirmative)", "Comparatives and Superlatives (simple adjectives)", "Object Pronouns (me, you, him, her, it, us, them)", "Likes and Dislikes (I like, I don't like + verb-ing)", "Sports and Hobbies"],
+                "9": ["Past Simple (irregular verbs - common ones)", "Future with 'will' and 'going to'", "Modal Verbs (should, must, may - basic usage)", "Adverbs of Frequency (always, sometimes, never)", "Countable and Uncountable Nouns (some, any)", "Making Suggestions (Let's..., How about...?)", "Travel and Transportation"]
+            },
+            "Espanhol": { 
+                "6": ["Saludos y Despedidas", "Alfabeto y Números (1-20)", "Colores", "Objetos de la Clase", "Mi Familia (básico)", "Verbo 'ser' y 'estar' (presente - formas básicas)", "Mandatos Simples", "Animales (comunes)"],
+                "7": ["Presente de Indicativo (rutinas diarias)", "Interrogativos (Qué, Quién, Dónde, Cuándo, Por qué, Cómo)", "Preposiciones de Lugar", "Describir Personas (adjetivos simples)", "Poder (puedo, puedes)", "Comida y Bebida", "Decir la Hora", "Días de la Semana, Meses"],
+                "8": ["Presente Continuo (estar + gerundio)", "Pretérito Imperfecto (verbos ser, estar, ir)", "Pretérito Perfecto Simple (verbos regulares)", "Comparativos y Superlativos", "Pronombres de Objeto Directo", "Gustar y Encantar", "Deportes y Aficiones"],
+                "9": ["Pretérito Perfecto Simple (verbos irregulares comunes)", "Futuro Simple", "Verbos Modales (deber, tener que, poder - básico)", "Adverbios de Frecuencia", "Sustantivos Contables e Incontables (algunos, ningunos)", "Hacer Sugerencias", "Viajes y Transporte"]
+            },
+            "Filosofia": {
+                 "6": ["O que é perguntar? A curiosidade", "O que eu vejo? Percepção e realidade (sentidos)", "Quem sou eu? Identidade e diferenças", "O que é ser amigo? Amizade e convivência", "Certo e Errado: noções iniciais de ética"],
+                "7": ["Mitos e suas explicações do mundo", "O que é pensar? Introdução à lógica e ao raciocínio", "O que é a beleza? Noções de estética", "O que é a felicidade? Diferentes visões", "Liberdade e Escolha"],
+                "8": ["O que é Filosofia? Origens na Grécia Antiga", "Sócrates: Conhece-te a ti mesmo e o método socrático", "Platão: O mundo das ideias e a Alegoria da Caverna", "Aristóteles: A busca pelo conhecimento e a ética", "O que é o conhecimento? Diferentes formas de saber"],
+                "9": ["Filosofia Política: O que é justiça? O que é o Estado?", "Ética e Moral: Dilemas morais contemporâneos", "Existencialismo (introdução): Liberdade e responsabilidade", "Filosofia da Ciência: O que é ciência? Método científico", "Grandes Pensadores e suas contribuições (breve panorama)"]
+            },
+            "Educação Física": {
+                "6": ["Jogos Cooperativos e Competitivos", "Brincadeiras de Roda e Cantigas", "Fundamentos de Esportes de Invasão (futsal, handebol - passe, drible, chute/arremesso)", "Ginástica Rítmica e Artística (elementos básicos)", "Atividades Rítmicas e Expressivas (danças simples)"],
+                "7": ["Esportes de Rede/Parede (vôlei, badminton - fundamentos)", "Esportes de Marca (atletismo - corrida, saltos, arremessos básicos)", "Lutas (judô, capoeira - introdução, movimentos básicos e respeito)", "Primeiros Socorros (noções básicas em caso de acidentes na prática esportiva)", "Saúde e Qualidade de Vida: Alimentação e Atividade Física"],
+                "8": ["Esportes Técnico-Combinatórios (ginástica, nado sincronizado - apreciação e prática de elementos)", "Esportes de Campo e Taco (beisebol/softbol adaptado, críquete adaptado - introdução)", "Dança (ritmos brasileiros e internacionais - criação e apreciação)", "Práticas Corporais de Aventura na Natureza (conceitos, segurança - ex: trilha, slackline adaptado)", "Doping e Fair Play no Esporte"],
+                "9": ["Organização de Eventos Esportivos e Recreativos na Escola", "Análise Crítica da Mídia Esportiva", "Esportes Adaptados e Inclusão", "Planejamento de Treino Físico (noções de carga, intensidade, volume)", "História dos Jogos Olímpicos e Paralímpicos"]
+            },
+            "Arte": {
+                "6": ["Elementos da Linguagem Visual (ponto, linha, forma, cor, textura, volume)", "Cores Primárias, Secundárias e Terciárias", "Técnicas de Desenho (luz e sombra, perspectiva básica)", "Modelagem (argila, massa de modelar)", "Arte Rupestre e Arte Indígena Brasileira"],
+                "7": ["Arte Egípcia e Grega (arquitetura, escultura, pintura)", "Arte Romana (mosaicos, retratos)", "Arte Medieval (vitrais, iluminuras, arquitetura gótica e românica)", "Gravura (isogravura, xilogravura básica)", "Teatro de Sombras e Marionetes"],
+                "8": ["Renascimento Cultural (principais artistas e características)", "Barroco (Europa e Brasil)", "Fotografia (história e técnicas básicas de composição)", "Arte Abstrata e Figurativa", "Instalações Artísticas e Intervenções Urbanas (conceito)"],
+                "9": ["Movimentos Artísticos do Século XIX (Impressionismo, Pós-Impressionismo)", "Vanguardas Europeias do Século XX (Cubismo, Surrealismo, Expressionismo)", "Arte Moderna e Contemporânea no Brasil (Semana de 22, artistas relevantes)", "Design Gráfico (cartazes, logotipos)", "Arte Digital e Novas Mídias"]
             }
         };
 
-
         // Elementos do DOM
-        // ... (outros elementos já definidos) ...
         let activitySpecificContentSelect;
+        let slideTopicInput, slideNumSlidesInput, slideIncludeImagesCheckbox, btnGenerateSlide, slideContentContainer, generatedSlideContent, btnExportSlidePdf, btnExportSlidePptx;
+        let reportTopicInput, reportAuthorInput, btnGenerateReport, reportContentContainer, generatedReportContent, btnExportReportPdf;
+        let ideaTopicInput, btnGenerateIdeas, ideasDisplayContainer, generatedIdeasText, btnExportIdeasPdf;
+        let chatInput, btnSendChatMessage, chatMessagesContainer;
+        // Elementos para Gerador de Receitas
+        let recipeIngredients, recipeCuisineType, recipeDifficulty, btnGenerateRecipe, recipeDisplayContainer, generatedRecipeText, btnExportRecipePdf, btnPlayRecipe;
 
 
         window.onload = function() {
-            // ... (inicialização de outros elementos) ...
             errorMessageElement = document.getElementById('errorMessage'); 
             loadingIndicator = document.getElementById('loadingIndicator');
             
@@ -659,7 +821,7 @@
 
             fileInput = document.getElementById('fileInput');
             btnProcessFileToSpeech = document.getElementById('btnProcessFileToSpeech');
-            btnExportPdf = document.getElementById('btnExportPdf');
+            btnExportPodcastScriptPdf = document.getElementById('btnExportPodcastScriptPdf'); 
             podcastScriptDisplayContainer = document.getElementById('podcastScriptDisplayContainer');
             generatedPodcastScriptText = document.getElementById('generatedPodcastScriptText');
             
@@ -685,7 +847,7 @@
 
             activityYearSelect = document.getElementById('activityYearSelect');
             activitySubjectSelect = document.getElementById('activitySubjectSelect');
-            activitySpecificContentSelect = document.getElementById('activitySpecificContentSelect'); // Novo seletor
+            activitySpecificContentSelect = document.getElementById('activitySpecificContentSelect'); 
             activityNumQuestionsSelect = document.getElementById('activityNumQuestionsSelect');
             btnGenerateActivity = document.getElementById('btnGenerateActivity');
             activityDisplayContainer = document.getElementById('activityDisplayContainer');
@@ -697,7 +859,7 @@
             searchResultsContainer = document.getElementById('searchResultsContainer');
             searchResultsText = document.getElementById('searchResultsText');
             btnClearSearch = document.getElementById('btnClearSearch');
-
+            
             sourceTextToTranslate = document.getElementById('sourceTextToTranslate');
             sourceLanguageSelect = document.getElementById('sourceLanguageSelect');
             targetLanguageSelect = document.getElementById('targetLanguageSelect');
@@ -707,28 +869,86 @@
             btnPlayTranslatedText = document.getElementById('btnPlayTranslatedText');
             translatorVoiceSelect = document.getElementById('translatorVoiceSelect');
 
+            slideTopicInput = document.getElementById('slideTopicInput');
+            slideNumSlidesInput = document.getElementById('slideNumSlidesInput');
+            slideIncludeImagesCheckbox = document.getElementById('slideIncludeImagesCheckbox');
+            btnGenerateSlide = document.getElementById('btnGenerateSlide');
+            slideContentContainer = document.getElementById('slideContentContainer');
+            generatedSlideContent = document.getElementById('generatedSlideContent');
+            btnExportSlidePdf = document.getElementById('btnExportSlidePdf');
+            btnExportSlidePptx = document.getElementById('btnExportSlidePptx');
+
+
+            reportTopicInput = document.getElementById('reportTopicInput');
+            reportAuthorInput = document.getElementById('reportAuthorInput');
+            btnGenerateReport = document.getElementById('btnGenerateReport');
+            reportContentContainer = document.getElementById('reportContentContainer');
+            generatedReportContent = document.getElementById('generatedReportContent');
+            btnExportReportPdf = document.getElementById('btnExportReportPdf');
+            
+            chatInput = document.getElementById('chatInput');
+            btnSendChatMessage = document.getElementById('btnSendChatMessage');
+            chatMessagesContainer = document.getElementById('chatMessagesContainer');
+
+            ideaTopicInput = document.getElementById('ideaTopicInput');
+            btnGenerateIdeas = document.getElementById('btnGenerateIdeas');
+            ideasDisplayContainer = document.getElementById('ideasDisplayContainer');
+            generatedIdeasText = document.getElementById('generatedIdeasText');
+            btnExportIdeasPdf = document.getElementById('btnExportIdeasPdf');
+
+            // Gerador de Receitas
+            recipeIngredients = document.getElementById('recipeIngredients');
+            recipeCuisineType = document.getElementById('recipeCuisineType');
+            recipeDifficulty = document.getElementById('recipeDifficulty');
+            btnGenerateRecipe = document.getElementById('btnGenerateRecipe');
+            recipeDisplayContainer = document.getElementById('recipeDisplayContainer');
+            generatedRecipeText = document.getElementById('generatedRecipeText');
+            btnExportRecipePdf = document.getElementById('btnExportRecipePdf');
+            btnPlayRecipe = document.getElementById('btnPlayRecipe');
+
 
             populateVoiceSelectors();
-            populateActivitySubjects(); // Popula matérias inicialmente
-            updateSpecificContentOptions(); // Popula conteúdos com base na seleção inicial
+            populateActivitySubjects(); 
+            updateSpecificContentOptions(); 
             
-            navLinks = document.querySelectorAll('nav .nav-link');
+            // Navegação SPA com Menu Lateral
+            navLinks = document.querySelectorAll('.side-menu .tool-link'); 
             generatorSections = document.querySelectorAll('.generator-section');
+            const mainMenuButton = document.getElementById('mainMenuButton');
+            const closeMenuButton = document.getElementById('closeMenuButton');
+            const sideMenu = document.getElementById('sideMenu');
+            const mainContentArea = document.getElementById('mainContentArea');
+
+            mainMenuButton.addEventListener('click', () => {
+                sideMenu.style.width = '280px'; 
+            });
+
+            closeMenuButton.addEventListener('click', () => {
+                sideMenu.style.width = '0';
+            });
+
 
             navLinks.forEach(link => {
                 link.addEventListener('click', function(event) {
                     event.preventDefault();
                     const targetId = this.getAttribute('data-target');
-                    navLinks.forEach(navLink => navLink.classList.remove('active'));
-                    this.classList.add('active');
+                    navLinks.forEach(navLink => navLink.classList.remove('active')); 
+                    this.classList.add('active'); 
+                    
                     generatorSections.forEach(section => {
                         section.style.display = section.id === targetId ? 'block' : 'none';
                     });
                     clearErrorMessage(); 
                     audioPlayerContainer.style.display = 'none'; 
+                    sideMenu.style.width = '0'; 
                 });
             });
-            if (navLinks.length > 0) document.querySelector('.nav-link[data-target="talkToAiSection"]').click();
+             if (generatorSections.length > 0 && document.getElementById('talkToAiSection')) {
+                document.getElementById('talkToAiSection').style.display = 'block';
+                 const activeLink = document.querySelector('.tool-link[data-target="talkToAiSection"]');
+                 if(activeLink) activeLink.classList.add('active');
+            }
+
 
             // Event Listeners
             btnGenerateImageFromText.addEventListener('click', gerarImagemComIA);
@@ -762,8 +982,9 @@
                 searchResultsText.textContent = '';
                 searchResultsContainer.style.display = 'none';
                 btnClearSearch.style.display = 'none';
+                document.getElementById('btnExportSearchPdf').style.display = 'none';
             });
-             btnExportPdf.addEventListener('click', () => exportTextToPdf(generatedPodcastScriptText.textContent, "guiao_podcast.pdf"));
+             btnExportPodcastScriptPdf.addEventListener('click', () => exportTextToPdf(generatedPodcastScriptText.textContent, "guiao_podcast.pdf"));
              btnExportActivityPdf.addEventListener('click', () => exportTextToPdf(generatedActivityText.textContent, "atividades_geradas.pdf"));
              btnTranslateText.addEventListener('click', translateTextWithAI);
              btnPlayTranslatedText.addEventListener('click', () => {
@@ -773,6 +994,21 @@
                     gerarFalaComIA(translatedContent, "Texto Traduzido", false, selectedVoice);
                 }
              });
+            btnGenerateSlide.addEventListener('click', gerarSlidesComIA);
+            btnExportSlidePdf.addEventListener('click', () => exportTextToPdf(generatedSlideContent.innerText, "apresentacao_slides.pdf")); 
+            btnExportSlidePptx.addEventListener('click', exportSlidesToPptx);
+            btnExportReportPdf.addEventListener('click', () => exportTextToPdf(generatedReportContent.innerText, "relatorio_gerado.pdf"));
+            btnGenerateReport.addEventListener('click', gerarRelatorioComIA);
+            btnSendChatMessage.addEventListener('click', enviarMensagemChatRadimak);
+            document.getElementById('btnExportSearchPdf').addEventListener('click', () => exportTextToPdf(searchResultsText.textContent, "pesquisa_ia.pdf"));
+            btnGenerateIdeas.addEventListener('click', gerarIdeiasComIA);
+            btnExportIdeasPdf.addEventListener('click', () => exportTextToPdf(generatedIdeasText.textContent, "ideias_geradas.pdf"));
+            btnGenerateRecipe.addEventListener('click', gerarReceitaComIA);
+            btnExportRecipePdf.addEventListener('click', () => exportTextToPdf(generatedRecipeText.textContent, "receita_gerada.pdf"));
+            btnPlayRecipe.addEventListener('click', () => {
+                const recipeContent = generatedRecipeText.textContent;
+                if(recipeContent) gerarFalaComIA(recipeContent, "Receita Gerada", false, "Zephyr"); 
+            });
 
 
             audioPlayer.onerror = function(e) {
@@ -820,7 +1056,7 @@
         
         function populateActivitySubjects() {
             const subjects = Object.keys(conteudosPorMateriaAno);
-            activitySubjectSelect.innerHTML = ''; // Limpa opções existentes
+            activitySubjectSelect.innerHTML = ''; 
             subjects.forEach(subject => {
                 const option = document.createElement('option');
                 option.value = subject;
@@ -832,7 +1068,7 @@
         function updateSpecificContentOptions() {
             const selectedYear = activityYearSelect.value;
             const selectedSubject = activitySubjectSelect.value;
-            activitySpecificContentSelect.innerHTML = ''; // Limpa opções existentes
+            activitySpecificContentSelect.innerHTML = ''; 
 
             if (conteudosPorMateriaAno[selectedSubject] && conteudosPorMateriaAno[selectedSubject][selectedYear]) {
                 const contents = conteudosPorMateriaAno[selectedSubject][selectedYear];
@@ -882,15 +1118,23 @@
         }
 
         async function toggleVoiceRecording() {
+             console.log("toggleVoiceRecording - Início. mediaRecorder:", mediaRecorder, "Estado:", mediaRecorder ? mediaRecorder.state : "N/A");
             if (mediaRecorder && mediaRecorder.state === "recording") {
-                mediaRecorder.stop();
+                console.log("toggleVoiceRecording - A parar gravação.");
+                if (mediaRecorder) mediaRecorder.stop(); 
+                else console.warn("MediaRecorder não estava definido ao tentar parar.");
             } else {
+                console.log("toggleVoiceRecording - A iniciar nova gravação.");
                 try {
                     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                     mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm;codecs=opus' }); 
                     audioChunks = []; 
-                    mediaRecorder.ondataavailable = event => audioChunks.push(event.data);
+                    mediaRecorder.ondataavailable = event => {
+                        console.log("toggleVoiceRecording - ondataavailable");
+                        audioChunks.push(event.data);
+                    };
                     mediaRecorder.onstart = () => { 
+                        console.log("toggleVoiceRecording - onstart");
                         btnRecordVoice.innerHTML = '<i class="fa-solid fa-stop"></i> Parar Gravação';
                         btnRecordVoice.classList.add("recording");
                         loadingIndicator.style.display = 'none'; 
@@ -899,6 +1143,7 @@
                         audioPlayerContainer.style.display = 'none'; 
                     };
                     mediaRecorder.onstop = async () => {
+                        console.log("toggleVoiceRecording - onstop");
                         btnRecordVoice.innerHTML = '<i class="fa-solid fa-microphone"></i> Gravar Voz';
                         btnRecordVoice.classList.remove("recording");
                         loadingIndicator.textContent = "A processar áudio gravado...";
@@ -916,7 +1161,9 @@
                         }
                     };
                     mediaRecorder.start();
+                     console.log("toggleVoiceRecording - mediaRecorder.start() chamado.");
                 } catch (error) {
+                    console.error("Erro em toggleVoiceRecording (else):", error);
                     displayErrorMessage("Não foi possível aceder ao microfone. Verifique as permissões.");
                     btnRecordVoice.innerHTML = '<i class="fa-solid fa-microphone"></i> Gravar Voz';
                     btnRecordVoice.classList.remove("recording");
@@ -1010,7 +1257,7 @@
             if (result.candidates?.[0]?.content?.parts?.[0]?.text) {
                 generatedPodcastScriptText.textContent = result.candidates[0].content.parts[0].text; 
                 podcastScriptDisplayContainer.style.display = 'block';
-                btnExportPdf.style.display = 'inline-flex';
+                btnExportPodcastScriptPdf.style.display = 'inline-flex'; 
                 return result.candidates[0].content.parts[0].text;
             }
             throw new Error("Não foi possível gerar o guião do diálogo a partir do resumo.");
@@ -1027,7 +1274,7 @@
             loadingIndicator.style.display = 'block';
             audioPlayerContainer.style.display = 'none';
             podcastScriptDisplayContainer.style.display = 'none';
-            btnExportPdf.style.display = 'none';
+            btnExportPodcastScriptPdf.style.display = 'none'; 
 
 
             try {
@@ -1125,10 +1372,11 @@
         async function gerarAtividadesComIA() {
             const ano = activityYearSelect.value;
             const materia = activitySubjectSelect.value;
-            const conteudo = activitySpecificContentSelect.value; // Usar o valor do novo seletor
+            const conteudo = activitySpecificContentSelect.value; 
+            const tipoQuestao = document.getElementById('activityQuestionTypeSelect').value;
             const numQuestoes = activityNumQuestionsSelect.value;
 
-            if (!conteudo) { // Verifica se um conteúdo foi selecionado
+            if (!conteudo) { 
                 displayErrorMessage("Por favor, selecione o conteúdo específico para as atividades.");
                 return;
             }
@@ -1142,12 +1390,21 @@
             activityDisplayContainer.style.display = 'none';
             btnExportActivityPdf.style.display = 'none';
 
-            const prompt = `Crie ${numQuestoes} questões de ${materia} para alunos do ${ano}º ano do Ensino Fundamental, focadas no seguinte conteúdo: "${conteudo}". As questões devem ser claras, adequadas ao nível de ensino e, se possível, variadas (ex: múltipla escolha, verdadeiro ou falso, resposta curta, problema). Formate a saída de forma organizada, numerando cada questão.`;
+            let tipoQuestaoPrompt = "";
+            if (tipoQuestao === "Objetivas") {
+                tipoQuestaoPrompt = "As questões devem ser primariamente objetivas (ex: múltipla escolha com 4 alternativas, verdadeiro ou falso).";
+            } else if (tipoQuestao === "Subjetivas") {
+                tipoQuestaoPrompt = "As questões devem ser primariamente subjetivas (ex: dissertativas curtas, resolução de problemas passo a passo, interpretação).";
+            } else { // Ambas
+                tipoQuestaoPrompt = "As questões devem ser variadas, incluindo tanto objetivas (ex: múltipla escolha, V/F) quanto subjetivas (ex: dissertativas curtas, problemas).";
+            }
+
+            const prompt = `Crie ${numQuestoes} questões de ${materia} para alunos do ${ano}º ano do Ensino Fundamental, focadas no seguinte conteúdo: "${conteudo}". ${tipoQuestaoPrompt} As questões devem ser claras e adequadas ao nível de ensino. Formate a saída de forma organizada, numerando cada questão. Se incluir questões de múltipla escolha, forneça 4 alternativas (A, B, C, D) e indique a resposta correta no final de cada questão objetiva entre parênteses, por exemplo: (Resposta: C).`;
 
             try {
                 const payload = {
                     contents: [{ role: "user", parts: [{ text: prompt }] }],
-                    generationConfig: { temperature: 0.6, maxOutputTokens: 1500 } 
+                    generationConfig: { temperature: 0.6, maxOutputTokens: 2000 } 
                 };
                 const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${geminiFlashApiKey}`;
                 const response = await fetch(apiUrl, {
@@ -1190,12 +1447,14 @@
             loadingIndicator.style.display = 'block';
             searchResultsContainer.style.display = 'none';
             btnClearSearch.style.display = 'none';
+            document.getElementById('btnExportSearchPdf').style.display = 'none';
 
-            const prompt = `Responda à seguinte pesquisa de forma informativa e concisa: "${query}"`;
+
+            const prompt = `Forneça uma resposta detalhada e abrangente sobre "${query}". Se possível, estruture a resposta em secções ou tópicos para facilitar a leitura. O objetivo é obter informação completa sobre o assunto.`;
             try {
                 const payload = {
                     contents: [{ role: "user", parts: [{ text: prompt }] }],
-                    generationConfig: { temperature: 0.5, maxOutputTokens: 1000 }
+                    generationConfig: { temperature: 0.5, maxOutputTokens: 2000 } 
                 };
                 const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${geminiFlashApiKey}`;
                 const response = await fetch(apiUrl, {
@@ -1213,6 +1472,7 @@
                     searchResultsText.textContent = searchResult;
                     searchResultsContainer.style.display = 'block';
                     btnClearSearch.style.display = 'inline-flex';
+                    document.getElementById('btnExportSearchPdf').style.display = 'inline-flex';
                 } else {
                     throw new Error("Não foi possível obter resultados da pesquisa da API.");
                 }
@@ -1279,6 +1539,435 @@
                 loadingIndicator.style.display = 'none';
             }
         }
+        
+        async function gerarSlidesComIA() {
+            const topic = slideTopicInput.value.trim();
+            const numSlides = slideNumSlidesInput.value;
+            const includeImages = slideIncludeImagesCheckbox.checked;
+
+            if (!topic) {
+                displayErrorMessage("Por favor, defina o tema principal dos slides.");
+                return;
+            }
+            if (!geminiFlashApiKey) {
+                displayErrorMessage("A API key para o serviço Gemini não está configurada.");
+                return;
+            }
+            clearErrorMessage();
+            loadingIndicator.textContent = "A gerar conteúdo dos slides...";
+            loadingIndicator.style.display = 'block';
+            slideContentContainer.style.display = 'none';
+            btnExportSlidePdf.style.display = 'none';
+            document.getElementById('btnExportSlidePptx').style.display = 'none';
+
+
+            let imagePrompt = "";
+            if (includeImages) {
+                imagePrompt = "Para cada slide, sugira também uma imagem relevante descrevendo-a brevemente entre colchetes, por exemplo: [Descrição da imagem sugerida].";
+            }
+
+            const prompt = `Crie o conteúdo para uma apresentação de aproximadamente ${numSlides} slides sobre o tema: "${topic}". 
+                Para cada slide, forneça um título claro e um texto conciso com os pontos principais. ${imagePrompt}
+                Organize o conteúdo de forma lógica e progressiva. 
+                Formato esperado para cada slide:
+                --- SLIDE X ---
+                TÍTULO DO SLIDE
+                Conteúdo do slide...
+                ${includeImages ? "Sugestão de Imagem: [Descrição da imagem]" : ""}
+                --- FIM SLIDE X ---`;
+            
+            try {
+                const payload = {
+                    contents: [{ role: "user", parts: [{ text: prompt }] }],
+                    generationConfig: { temperature: 0.7, maxOutputTokens: 3000 } 
+                };
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${geminiFlashApiKey}`;
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(`Erro da API ao gerar slides (${response.status}): ${errorData?.error?.message || response.statusText}`);
+                }
+                const result = await response.json();
+                if (result.candidates?.[0]?.content?.parts?.[0]?.text) {
+                    const slideContent = result.candidates[0].content.parts[0].text;
+                    generatedSlideContent.innerHTML = slideContent.replace(/--- SLIDE (\d+) ---/g, "<h3>Slide $1</h3>").replace(/--- FIM SLIDE \d+ ---/g, "<hr>"); 
+                    slideContentContainer.style.display = 'block';
+                    btnExportSlidePdf.style.display = 'inline-flex';
+                    document.getElementById('btnExportSlidePptx').style.display = 'inline-flex';
+                } else {
+                    throw new Error("Não foi possível obter o conteúdo dos slides da API.");
+                }
+            } catch (error) {
+                displayErrorMessage(error.message);
+            } finally {
+                loadingIndicator.style.display = 'none';
+            }
+        }
+
+        async function gerarRelatorioComIA() {
+            const topic = reportTopicInput.value.trim();
+            const author = reportAuthorInput.value.trim() || "Autor Desconhecido";
+
+            if (!topic) {
+                displayErrorMessage("Por favor, defina o tema do relatório.");
+                return;
+            }
+            if (!geminiFlashApiKey) {
+                displayErrorMessage("A API key para o serviço Gemini não está configurada.");
+                return;
+            }
+            clearErrorMessage();
+            loadingIndicator.textContent = "A gerar estrutura do relatório...";
+            loadingIndicator.style.display = 'block';
+            reportContentContainer.style.display = 'none';
+            btnExportReportPdf.style.display = 'none';
+            
+            const prompt = `Crie uma estrutura detalhada para um relatório sobre o tema "${topic}", com autoria de "${author}".
+                O relatório deve incluir as seguintes secções bem definidas:
+                1.  Capa: Com título do relatório, autor(es), e data (usar a data atual no formato DD/MM/AAAA).
+                2.  Contracapa (opcional, pode ser uma página em branco ou com informações adicionais como nome da instituição, se aplicável - deixe um placeholder se não souber).
+                3.  Sumário (apenas o título da secção, o conteúdo seria gerado após o desenvolvimento).
+                4.  Introdução: Apresente o tema, a sua relevância, os objetivos do relatório e uma breve descrição da estrutura do trabalho.
+                5.  Desenvolvimento: Divida esta secção em pelo menos 3 a 5 sub-secções com títulos claros e pertinentes ao tema. Para cada sub-secção, escreva um ou dois parágrafos iniciais desenvolvendo a ideia principal.
+                6.  Conclusão: Apresente as principais descobertas ou reflexões finais sobre o tema.
+                7.  Anexos (se aplicável): Indique que esta secção é para material complementar, se houver.
+                8.  Referências Bibliográficas: Indique que esta secção listaria as fontes consultadas (deixe exemplos de como formatar referências, se possível, no estilo ABNT ou APA).
+                
+                Formate o texto de forma clara e organizada, usando títulos e subtítulos apropriados.`;
+
+            try {
+                const payload = {
+                    contents: [{ role: "user", parts: [{ text: prompt }] }],
+                    generationConfig: { temperature: 0.6, maxOutputTokens: 3000 }
+                };
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${geminiFlashApiKey}`;
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(`Erro da API ao gerar relatório (${response.status}): ${errorData?.error?.message || response.statusText}`);
+                }
+                const result = await response.json();
+                if (result.candidates?.[0]?.content?.parts?.[0]?.text) {
+                    const reportContent = result.candidates[0].content.parts[0].text;
+                    generatedReportContent.innerHTML = reportContent.replace(/\n/g, "<br>"); 
+                    reportContentContainer.style.display = 'block';
+                    btnExportReportPdf.style.display = 'inline-flex';
+                } else {
+                    throw new Error("Não foi possível obter a estrutura do relatório da API.");
+                }
+            } catch (error) {
+                displayErrorMessage(error.message);
+            } finally {
+                loadingIndicator.style.display = 'none';
+            }
+        }
+        
+        let radimakChatHistory = [];
+        async function enviarMensagemChatRadimak() {
+            const messageText = chatInput.value.trim();
+            if (!messageText) return;
+
+            appendMessageToChat("user", messageText);
+            chatInput.value = ""; 
+
+            if (!geminiFlashApiKey) {
+                appendMessageToChat("radimak", "Desculpe, a API key para o Radimak não está configurada.");
+                return;
+            }
+            loadingIndicator.textContent = "Radimak a pensar...";
+            loadingIndicator.style.display = 'block';
+
+            radimakChatHistory.push({ role: "user", parts: [{ text: messageText }] });
+
+            try {
+                const payload = {
+                    contents: radimakChatHistory, 
+                    generationConfig: { temperature: 0.7, maxOutputTokens: 1000 }
+                };
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${geminiFlashApiKey}`;
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(`Erro da API Radimak (${response.status}): ${errorData?.error?.message || response.statusText}`);
+                }
+                const result = await response.json();
+                if (result.candidates?.[0]?.content?.parts?.[0]?.text) {
+                    const radimakResponse = result.candidates[0].content.parts[0].text;
+                    appendMessageToChat("radimak", radimakResponse);
+                    radimakChatHistory.push({ role: "model", parts: [{ text: radimakResponse }] });
+                } else {
+                    appendMessageToChat("radimak", "Desculpe, não consegui processar a sua mensagem neste momento.");
+                }
+            } catch (error) {
+                appendMessageToChat("radimak", `Ocorreu um erro: ${error.message}`);
+            } finally {
+                loadingIndicator.style.display = 'none';
+            }
+        }
+
+        function appendMessageToChat(sender, message) {
+            const messageDiv = document.createElement('div');
+            messageDiv.style.marginBottom = '10px';
+            messageDiv.style.padding = '8px';
+            messageDiv.style.borderRadius = '6px';
+            messageDiv.style.wordWrap = 'break-word';
+
+            if (sender === "user") {
+                messageDiv.style.backgroundColor = "var(--primary-red)";
+                messageDiv.style.color = "var(--light-text)";
+                messageDiv.style.textAlign = "right";
+                messageDiv.style.marginLeft = "auto";
+                messageDiv.style.maxWidth = "70%";
+            } else { 
+                messageDiv.style.backgroundColor = "#333";
+                messageDiv.style.color = "var(--light-text)";
+                messageDiv.style.textAlign = "left";
+                messageDiv.style.marginRight = "auto";
+                messageDiv.style.maxWidth = "70%";
+            }
+            messageDiv.textContent = message;
+            chatMessagesContainer.appendChild(messageDiv);
+            chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight; 
+        }
+        
+        async function gerarIdeiasComIA() {
+            const topic = ideaTopicInput.value.trim();
+            if (!topic) {
+                displayErrorMessage("Por favor, introduza um tópico para brainstorming.");
+                return;
+            }
+            if (!geminiFlashApiKey) {
+                displayErrorMessage("A API key para o serviço Gemini não está configurada.");
+                return;
+            }
+            clearErrorMessage();
+            loadingIndicator.textContent = "A gerar ideias...";
+            loadingIndicator.style.display = 'block';
+            ideasDisplayContainer.style.display = 'none';
+            btnExportIdeasPdf.style.display = 'none';
+
+            const prompt = `Gere uma lista de ideias, diferentes perspetivas, ou um esboço de mapa mental sobre o seguinte tópico ou problema: "${topic}". Apresente as ideias de forma clara e concisa, talvez usando bullet points, uma estrutura numerada ou secções temáticas.`;
+            try {
+                const payload = {
+                    contents: [{ role: "user", parts: [{ text: prompt }] }],
+                    generationConfig: { temperature: 0.7, maxOutputTokens: 1500 }
+                };
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${geminiFlashApiKey}`;
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(`Erro da API ao gerar ideias (${response.status}): ${errorData?.error?.message || response.statusText}`);
+                }
+                const result = await response.json();
+                if (result.candidates?.[0]?.content?.parts?.[0]?.text) {
+                    const ideas = result.candidates[0].content.parts[0].text;
+                    generatedIdeasText.textContent = ideas;
+                    ideasDisplayContainer.style.display = 'block';
+                    btnExportIdeasPdf.style.display = 'inline-flex';
+                } else {
+                    throw new Error("Não foi possível obter ideias da resposta da API.");
+                }
+            } catch (error) {
+                displayErrorMessage(error.message);
+            } finally {
+                loadingIndicator.style.display = 'none';
+            }
+        }
+
+        async function gerarReceitaComIA() {
+            const ingredients = recipeIngredients.value.trim();
+            const cuisine = recipeCuisineType.value;
+            const difficulty = recipeDifficulty.value;
+
+            if (!ingredients) {
+                displayErrorMessage("Por favor, liste os ingredientes que possui.");
+                return;
+            }
+            if (!geminiFlashApiKey) {
+                displayErrorMessage("A API key para o serviço Gemini não está configurada.");
+                return;
+            }
+            clearErrorMessage();
+            loadingIndicator.textContent = "A gerar receita...";
+            loadingIndicator.style.display = 'block';
+            recipeDisplayContainer.style.display = 'none';
+            btnExportRecipePdf.style.display = 'none';
+            btnPlayRecipe.style.display = 'none';
+
+            let prompt = `Crie uma receita detalhada utilizando principalmente os seguintes ingredientes: ${ingredients}.`;
+            if (cuisine) {
+                prompt += ` A receita deve ser do tipo de cozinha ${cuisine}.`;
+            }
+            if (difficulty) {
+                prompt += ` O nível de dificuldade deve ser ${difficulty}.`;
+            }
+            prompt += ` A receita deve incluir:
+                        1. Título da Receita.
+                        2. Uma breve descrição (1-2 frases).
+                        3. Tempo de Preparação estimado.
+                        4. Tempo de Cozedura estimado.
+                        5. Número de Porções.
+                        6. Lista de Ingredientes completa (incluindo os fornecidos e quaisquer outros necessários, com quantidades).
+                        7. Instruções passo a passo claras e detalhadas.
+                        8. Opcional: Sugestões de acompanhamento ou dicas.
+                        Formate a receita de forma clara e organizada.`;
+            
+            try {
+                const payload = {
+                    contents: [{ role: "user", parts: [{ text: prompt }] }],
+                    generationConfig: { temperature: 0.7, maxOutputTokens: 1500 }
+                };
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${geminiFlashApiKey}`;
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(`Erro da API ao gerar receita (${response.status}): ${errorData?.error?.message || response.statusText}`);
+                }
+                const result = await response.json();
+                if (result.candidates?.[0]?.content?.parts?.[0]?.text) {
+                    const recipe = result.candidates[0].content.parts[0].text;
+                    generatedRecipeText.textContent = recipe;
+                    recipeDisplayContainer.style.display = 'block';
+                    btnExportRecipePdf.style.display = 'inline-flex';
+                    btnPlayRecipe.style.display = 'inline-flex';
+                } else {
+                    throw new Error("Não foi possível obter a receita da resposta da API.");
+                }
+            } catch (error) {
+                displayErrorMessage(error.message);
+            } finally {
+                loadingIndicator.style.display = 'none';
+            }
+        }
+
+
+        function exportSlidesToPptx() {
+            const slideContentRaw = generatedSlideContent.innerText; 
+            if (!slideContentRaw || slideContentRaw.trim() === "") {
+                displayErrorMessage("Não há conteúdo de slides para exportar.");
+                return;
+            }
+            clearErrorMessage();
+            loadingIndicator.textContent = "A gerar ficheiro PPTX...";
+            loadingIndicator.style.display = 'block';
+
+            try {
+                if (typeof PptxGenJS === 'undefined') {
+                    throw new Error("Biblioteca PptxGenJS não carregada. Não é possível exportar para PPTX.");
+                }
+                if (typeof JSZip === 'undefined') { 
+                    throw new Error("Biblioteca JSZip não carregada. É uma dependência para PptxGenJS.");
+                }
+                let pptx = new PptxGenJS();
+                // pptx.layout = 'LAYOUT_16X9'; // Removido para usar o padrão da biblioteca
+
+                const slideSections = slideContentRaw.split(/<h3>Slide \d+<\/h3>/i);
+                
+                let slideData = [];
+                const sectionsToProcess = slideSections[0].trim() === "" ? slideSections.slice(1) : slideSections;
+
+                sectionsToProcess.forEach(sectionText => {
+                    const cleanedSection = sectionText.replace(/<hr>/gi, '').trim();
+                    if (cleanedSection) {
+                        const lines = cleanedSection.split('\n').map(line => line.trim()).filter(line => line);
+                        if (lines.length > 0) {
+                            let title = "Conteúdo do Slide"; 
+                            let content = lines.join('\n');
+                            const imageSuggestionMatch = content.match(/Sugestão de Imagem:\s*\[(.*?)\]/im);
+                            const imageSuggestion = imageSuggestionMatch ? imageSuggestionMatch[1] : null;
+                            if(imageSuggestion) {
+                                content = content.replace(/Sugestão de Imagem:\s*\[.*?\]/im, '').trim();
+                            }
+                            const firstLineIsLikelyTitle = lines[0].length < 80 && !lines[0].includes('.') && !lines[0].toLowerCase().startsWith("sugestão de imagem:"); 
+                            if(firstLineIsLikelyTitle && lines.length > 1){
+                                title = lines[0];
+                                content = lines.slice(1).join('\n').replace(/Sugestão de Imagem:\s*\[.*?\]/im, '').trim();
+                            } else if (firstLineIsLikelyTitle && lines.length === 1 && !lines[0].toLowerCase().startsWith("sugestão de imagem:")) {
+                                title = lines[0];
+                                content = ""; 
+                            }
+                            slideData.push({ title, content, imageSuggestion });
+                        }
+                    }
+                });
+
+
+                if (slideData.length === 0 && slideContentRaw.trim() !== "") { 
+                     let slide = pptx.addSlide();
+                     slide.background = { color: "1f1f1f" };
+                     slide.addText("Conteúdo dos Slides", { x: 0.5, y: 0.25, w: '90%', fontSize: 24, bold: true, color: "FFFFFF", align: 'center' });
+                     slide.addText(slideContentRaw, { x: 0.5, y: 1.0, w: '90%', fontSize: 14, color: "E0E0E0" });
+                } else if (slideData.length === 0) {
+                     throw new Error("Não foi possível analisar o conteúdo dos slides para gerar o PPTX.");
+                }
+
+
+                slideData.forEach((data, index) => {
+                    let slide = pptx.addSlide();
+                    slide.background = { color: "1f1f1f" }; 
+                    
+                    slide.addText(data.title || `Slide ${index + 1}`, { 
+                        x: 0.5, y: 0.25, w: '90%', h: 0.75, 
+                        fontSize: 28, bold: true, color: "FFFFFF", align: 'center' 
+                    });
+
+                    if (data.content) {
+                        slide.addText(data.content, { 
+                            x: 0.5, y: 1.2, w: '90%', h: '75%', 
+                            fontSize: 16, color: "E0E0E0", align: 'left',
+                            lineSpacing: 24 
+                        });
+                    }
+
+                    if (data.imageSuggestion) {
+                        slide.addText(`Sugestão de Imagem: ${data.imageSuggestion}`, { 
+                            x: 0.5, y: 5.0, w: '90%', h: 0.5, 
+                            fontSize: 10, italic: true, color: "A0A0A0", align: 'left'
+                        });
+                    }
+                });
+
+                pptx.writeFile({ fileName: 'apresentacao_gerada.pptx' })
+                    .then(() => console.log("Ficheiro PPTX gerado com sucesso."))
+                    .catch(err => {
+                        console.error("Erro ao gerar PPTX:", err);
+                        displayErrorMessage("Erro ao gerar o ficheiro PPTX.");
+                    });
+
+            } catch (error) {
+                console.error("Erro ao exportar para PPTX:", error);
+                displayErrorMessage(`Erro ao exportar para PPTX: ${error.message}`);
+            } finally {
+                loadingIndicator.style.display = 'none';
+            }
+        }
+        document.addEventListener('DOMContentLoaded', () => { 
+            const btnExportPptx = document.getElementById('btnExportSlidePptx');
+            if(btnExportPptx) {
+                btnExportPptx.addEventListener('click', exportSlidesToPptx);
+            }
+        });
 
 
         function exportTextToPdf(text, filename = "documento.pdf") {
@@ -1569,6 +2258,7 @@
                          if (!candidate.content?.parts?.[0]?.inlineData?.data) {
                             let finishReasonMessage = `O modelo TTS não concluiu a geração com sucesso. Motivo: ${candidate.finishReason || 'Desconhecido'}. Não foi possível obter dados de áudio.`;
                             if (candidate.finishReason === "OTHER") { 
+                                console.error("Resposta completa da API (finishReason OTHER, sem dados de áudio):", JSON.stringify(result, null, 2));
                                 finishReasonMessage += " Isto pode indicar um problema com o texto de entrada (demasiado longo, caracteres inválidos), uma instabilidade temporária da API, ou o modelo pode não ter conseguido gerar áudio para este pedido específico. Tente com um texto mais simples ou mais curto, ou aguarde um pouco e tente novamente.";
                             }
                             throw new Error(finishReasonMessage);
@@ -1628,5 +2318,3 @@
     </script>
 
 </body>
-</html>
-
