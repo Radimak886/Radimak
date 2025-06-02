@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-PT">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -23,6 +23,8 @@
             onAuthStateChanged,
             signOut
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
 
         // Your web app's Firebase configuration
         const firebaseConfig = {
@@ -40,24 +42,30 @@
             const app = initializeApp(firebaseConfig);
             const analytics = getAnalytics(app);
             const auth = getAuth(app);
-            console.log("Firebase initialized successfully.");
+            const db = getFirestore(app); // Initialize Firestore
+            console.log("Firebase initialized successfully with Auth, Analytics, and Firestore.");
 
             window.firebaseServices = {
                 app,
                 auth,
+                db, // Add db to global services
                 signInWithEmailAndPassword,
                 createUserWithEmailAndPassword,
                 sendPasswordResetEmail,
                 updateProfile,
                 onAuthStateChanged,
                 signOut,
-                analytics
+                analytics,
+                collection, // Firestore functions
+                addDoc,
+                serverTimestamp
             };
+            window.fbConfig = firebaseConfig; // Make firebaseConfig globally accessible
         } catch (error) {
             console.error("Error initializing Firebase:", error);
             const errorElement = document.getElementById('errorMessage');
             if (errorElement) {
-                errorElement.textContent = "Erro crítico ao inicializar os serviços de autenticação. A aplicação pode não funcionar corretamente.";
+                errorElement.textContent = "Erro crítico ao inicializar os serviços de backend. A aplicação pode não funcionar corretamente.";
                 errorElement.style.display = 'block';
             } else {
                 alert("Erro crítico ao inicializar o Firebase. A aplicação pode não funcionar corretamente.");
@@ -84,14 +92,14 @@
             --btn-yellow: #FFEB3B;
             --btn-yellow-hover: #fdd835;
             --btn-yellow-text: #333333;
-            --accent-color-1: #f5a623;
-            --accent-color-2: #bd10e0;
-            --accent-color-3: #7ed321;
-            --accent-color-5: #e91e63;
-            --accent-color-6: #00bcd4;
-            --accent-color-8: #009688;
-            --accent-color-9: #ff5722;
-            --accent-color-10: #607d8b;
+            --accent-color-1: #f5a623; /* Imagem */
+            --accent-color-2: #bd10e0; /* Texto-Voz, Roteiro Ouvir, Tradução Ouvir */
+            --accent-color-3: #7ed321; /* Podcast Export, Atividades Export, Slides PDF, Relatório PDF, Plano Aula PDF, Verif. Assunto PDF, Prova PDF */
+            --accent-color-5: #e91e63; /* Roteiro Gerar, Plano Aula Gerar, Verificar Assunto */
+            --accent-color-6: #00bcd4; /* Atividades Gerar, Gerar Prova */
+            --accent-color-8: #009688; /* Tradutor */
+            --accent-color-9: #ff5722; /* Slides Gerar/PPTX */
+            --accent-color-10: #607d8b;/* Relatórios Gerar */
             --border-color: #303030;
             --shadow-color: rgba(0, 0, 0, 0.2);
         }
@@ -220,7 +228,7 @@
             padding: 20px;
             box-sizing: border-box;
             margin-top: 80px;
-            transition: opacity 0.3s ease-in-out; /* Apenas opacidade para o container principal */
+            transition: opacity 0.3s ease-in-out;
             display: none;
             opacity: 0;
         }
@@ -238,13 +246,12 @@
             margin-bottom: 30px;
             text-align: left;
             border: 1px solid var(--border-color);
-            /* Controle de visibilidade e transição */
-            display: none; /* Começa escondido */
+            display: none;
             opacity: 0;
-            transition: opacity 0.3s ease-in-out; /* Transição apenas na opacidade */
+            transition: opacity 0.3s ease-in-out;
         }
         .generator-section.active {
-            display: block; /* Torna visível */
+            display: block;
             opacity: 1;
         }
 
@@ -352,8 +359,8 @@
         #btnProcessFileToSpeech, #btnExportPodcastScriptPdf { background-color: var(--btn-green); }
         #btnProcessFileToSpeech:hover, #btnExportPodcastScriptPdf:hover { background-color: var(--btn-green-hover); }
 
-        #btnGenerateSpeechFromText, #btnPlayScript, #btnPlayTranslatedText, #btnPlayRecipe { background-color: var(--btn-pink); }
-        #btnGenerateSpeechFromText:hover, #btnPlayScript:hover, #btnPlayTranslatedText:hover, #btnPlayRecipe:hover { background-color: var(--btn-pink-hover); }
+        #btnGenerateSpeechFromText, #btnPlayScript, #btnPlayTranslatedText, #btnPlayRecipe, #btnGenerateLessonPlan, #btnExportLessonPlanPdf, #btnVerifySubject, #btnExportSubjectVerificationPdf  { background-color: var(--btn-pink); }
+        #btnGenerateSpeechFromText:hover, #btnPlayScript:hover, #btnPlayTranslatedText:hover, #btnPlayRecipe:hover, #btnGenerateLessonPlan:hover, #btnExportLessonPlanPdf:hover, #btnVerifySubject:hover, #btnExportSubjectVerificationPdf:hover { background-color: var(--btn-pink-hover); }
 
         #btnGenerateImageFromText, #btnDownloadAiImage, #btnDeleteAiImage { background-color: var(--btn-blue); }
         #btnGenerateImageFromText:hover, #btnDownloadAiImage:hover, #btnDeleteAiImage:hover { background-color: var(--btn-blue-hover); }
@@ -375,10 +382,10 @@
 
         #btnSendChatMessage { background-color: var(--btn-blue); }
         #btnSendChatMessage:hover { background-color: var(--btn-blue-hover); }
-        #btnUpdateUsername { background-color: var(--btn-green); }
-        #btnUpdateUsername:hover { background-color: var(--btn-green-hover); }
-        #btnGenerateLessonPlan, #btnExportLessonPlanPdf, #btnVerifySubject, #btnExportSubjectVerificationPdf { background-color: var(--btn-pink); }
-        #btnGenerateLessonPlan:hover, #btnExportLessonPlanPdf:hover, #btnVerifySubject:hover, #btnExportSubjectVerificationPdf:hover { background-color: var(--btn-pink-hover); }
+        #btnUpdateUsername, #btnSubmitSuggestion { background-color: var(--btn-green); }
+        #btnUpdateUsername:hover, #btnSubmitSuggestion:hover { background-color: var(--btn-green-hover); }
+        /* Removido: #btnSummarizeYoutubeVideo, #btnExportYoutubeSummaryPdf { background-color: var(--btn-red); }
+        #btnSummarizeYoutubeVideo:hover, #btnExportYoutubeSummaryPdf:hover { background-color: var(--btn-red-hover); } */
 
 
         #errorMessage {
@@ -421,7 +428,7 @@
             font-weight: 500;
         }
 
-        textarea, select, input[type="text"], input[type="email"], input[type="password"] {
+        textarea, select, input[type="text"], input[type="email"], input[type="password"], input[type="url"] {
             width: 100%;
             padding: 10px;
             margin-top: 8px;
@@ -667,7 +674,7 @@
         <h1 class="main-title">Rad IA 2.0</h1>
         <div class="top-bar-user-info" id="userInfo"></div>
         <div class="top-bar-buttons">
-            <button id="mainMenuButton"><i class="fa-solid fa-bars"></i> RAD IA MENU</button>
+            <button id="mainMenuButton"><i class="fa-solid fa-bars"></i> MENU RAD IA</button>
             <button id="btnLogout"><i class="fa-solid fa-sign-out-alt"></i> SAIR</button>
         </div>
     </div>
@@ -686,7 +693,7 @@
                 </div>
                 <button type="submit" id="loginButton">Entrar</button>
                 <div id="loginErrorMessage" class="auth-error-message"></div>
-                <p class="toggle-form-link" id="showSignUpLink">Não tem uma conta? Cadastre-se aqui.</p>
+                <p class="toggle-form-link" id="showSignUpLink">Não tem uma conta? Crie uma aqui.</p>
                 <p class="forgot-password-link" id="showForgotPasswordLink">Esqueceu sua senha?</p>
             </form>
 
@@ -710,7 +717,7 @@
                 </div>
                 <button type="submit" id="signUpButton">Cadastrar</button>
                 <div id="signUpErrorMessage" class="auth-error-message"></div>
-                <p class="toggle-form-link" id="showLoginLinkFromSignUp">Já tem uma conta? Entre aqui.</p>
+                <p class="toggle-form-link" id="showLoginLinkFromSignUp">Já tem uma conta? Faça login.</p>
             </form>
 
             <form id="forgotPasswordForm">
@@ -729,19 +736,20 @@
 
 
     <div id="sideMenu" class="side-menu">
-        <a href="javascript:void(0)" class="close-btn" id="closeMenuButton">&times;</a>
+        <a href="javascript:void(0)" class="close-btn" id="closeMenuButton">×</a>
         <a href="#" class="tool-link active" data-target="fileToPodcastSection"><i class="fa-solid fa-file-audio"></i> Podcast</a>
-        <a href="#" class="tool-link" data-target="textToSpeechSection"><i class="fa-solid fa-comment-dots"></i> Texto-Fala</a>
+        <a href="#" class="tool-link" data-target="textToSpeechSection"><i class="fa-solid fa-comment-dots"></i> Texto-Voz</a>
         <a href="#" class="tool-link" data-target="imageGeneratorSection"><i class="fa-solid fa-image"></i> Imagem</a>
-        <a href="#" class="tool-link" data-target="scriptGeneratorSection"><i class="fa-solid fa-scroll"></i> Guião</a>
+        <a href="#" class="tool-link" data-target="scriptGeneratorSection"><i class="fa-solid fa-scroll"></i> Roteiro</a>
         <a href="#" class="tool-link" data-target="translatorSection"><i class="fa-solid fa-language"></i> Tradutor</a>
         <a href="#" class="tool-link" data-target="activityGeneratorSection"><i class="fa-solid fa-graduation-cap"></i> Atividades</a>
         <a href="#" class="tool-link" data-target="slideGeneratorSection"><i class="fa-solid fa-person-chalkboard"></i> Slides</a>
         <a href="#" class="tool-link" data-target="reportGeneratorSection"><i class="fa-solid fa-file-signature"></i> Relatórios</a>
-        <a href="#" class="tool-link" data-target="radimakChatSection"><i class="fa-solid fa-robot"></i> Radimak</a>
-        <a href="#" class="tool-link" data-target="lessonPlanGeneratorSection"><i class="fa-solid fa-calendar-alt"></i> Planej. de Aula</a>
-        <a href="#" class="tool-link" data-target="subjectVerifierSection"><i class="fa-solid fa-book-reader"></i> Verificar Assunto</a>
+        <a href="#" class="tool-link" data-target="radimakChatSection"><i class="fa-solid fa-robot"></i> Chat Radimak</a>
+        <a href="#" class="tool-link" data-target="lessonPlanGeneratorSection"><i class="fa-solid fa-calendar-alt"></i> Plano de Aula</a>
+        <a href="#" class="tool-link" data-target="subjectVerifierSection"><i class="fa-solid fa-book-reader"></i> Verificar Conteúdo</a>
         <a href="#" class="tool-link" data-target="proofGeneratorSection"><i class="fa-solid fa-file-alt"></i> Gerador de Provas</a>
+        <a href="#" class="tool-link" data-target="suggestionBoxSection"><i class="fa-solid fa-lightbulb-on"></i> Enviar Sugestão</a>
         <a href="#" class="tool-link" data-target="profileSection"><i class="fa-solid fa-user-pen"></i> Meu Perfil</a>
     </div>
 
@@ -766,36 +774,32 @@
         </div>
 
 
-        <div id="fileToPodcastSection" class="generator-section active">
-            <h2><i class="fa-solid fa-file-invoice"></i> Converter Ficheiro em Podcast (Diálogo)</h2>
+        <div id="fileToPodcastSection" class="generator-section">
+            <h2><i class="fa-solid fa-file-invoice"></i> Converter Arquivo em Podcast (Diálogo)</h2>
             <input type="file" id="fileInput" accept="image/jpeg,image/png,image/gif,image/webp,application/pdf,.txt">
             <div class="form-group">
-                <label for="podcastSpeaker1Voice">Voz do Apresentador 1:</label>
+                <label for="podcastSpeaker1Voice">Voz do Narrador/Apresentador:</label>
                 <select id="podcastSpeaker1Voice"></select>
-            </div>
-            <div class="form-group">
-                <label for="podcastSpeaker2Voice">Voz do Apresentador 2:</label>
-                <select id="podcastSpeaker2Voice"></select>
             </div>
             <div class="button-group">
                 <button id="btnProcessFileToSpeech"><i class="fa-solid fa-podcast"></i> Gerar Diálogo em Áudio</button>
-                <button id="btnExportPodcastScriptPdf" style="display:none;"><i class="fa-solid fa-file-pdf"></i> Exportar Guião para PDF</button>
+                <button id="btnExportPodcastScriptPdf" style="display:none;"><i class="fa-solid fa-file-pdf"></i> Exportar Roteiro para PDF</button>
             </div>
              <div id="podcastScriptDisplayContainer" style="display:none;">
-                <h3>Guião do Podcast Gerado:</h3>
+                <h3>Roteiro do Podcast Gerado:</h3>
                 <div id="generatedPodcastScriptText"></div>
             </div>
         </div>
 
         <div id="textToSpeechSection" class="generator-section">
-            <h2><i class="fa-solid fa-align-left"></i> Gerador de Fala (Text-to-Speech)</h2>
-            <textarea id="ttsInputText" placeholder="Escreva o texto que deseja converter em fala..."></textarea>
+            <h2><i class="fa-solid fa-align-left"></i> Gerador de Voz (Text-to-Speech)</h2>
+            <textarea id="ttsInputText" placeholder="Escreva o texto que deseja converter em voz..."></textarea>
             <div class="form-group">
                 <label for="ttsVoiceSelect">Escolha a Voz:</label>
                 <select id="ttsVoiceSelect"></select>
             </div>
             <div class="button-group">
-                <button id="btnGenerateSpeechFromText"><i class="fa-solid fa-volume-high"></i> Gerar Fala com IA (Texto)</button>
+                <button id="btnGenerateSpeechFromText"><i class="fa-solid fa-volume-high"></i> Gerar Voz com IA (Texto)</button>
             </div>
         </div>
 
@@ -805,13 +809,13 @@
 
         <div id="imageGeneratorSection" class="generator-section">
             <h2><i class="fa-solid fa-palette"></i> Criar Imagem com Inteligência Artificial</h2>
-            <textarea id="imagePrompt" placeholder="Descreva a imagem que você quer gerar (ex: um gato astronauta a flutuar no espaço, pintura a óleo)"></textarea>
+            <textarea id="imagePrompt" placeholder="Descreva a imagem que você quer gerar (ex: um gato astronauta flutuando no espaço, pintura a óleo)"></textarea>
             <div class="button-group">
                 <button id="btnGenerateImageFromText"><i class="fa-solid fa-wand-magic-sparkles"></i> Gerar Imagem com IA</button>
             </div>
             <div id="aiGeneratedImageContainer">
                 <img id="aiGeneratedImage" src="#" alt="Imagem gerada por IA aparecerá aqui" style="display:none;"/>
-                <span id="aiImagePlaceholder">A sua imagem gerada por IA aparecerá aqui.</span>
+                <span id="aiImagePlaceholder">Sua imagem gerada por IA aparecerá aqui.</span>
             </div>
             <div class="button-group">
                 <button id="btnDownloadAiImage" style="display:none;"><i class="fa-solid fa-download"></i> Baixar Imagem da IA</button>
@@ -820,8 +824,8 @@
         </div>
 
         <div id="scriptGeneratorSection" class="generator-section">
-            <h2><i class="fa-solid fa-feather-pointed"></i> Gerador de Guiões e Histórias</h2>
-            <textarea id="scriptPrompt" placeholder="Descreva o tema, personagens, género ou ideia base para o seu guião ou história..."></textarea>
+            <h2><i class="fa-solid fa-feather-pointed"></i> Gerador de Roteiros e Histórias</h2>
+            <textarea id="scriptPrompt" placeholder="Descreva o tema, personagens, gênero ou ideia base para seu roteiro ou história..."></textarea>
             <div class="text-options-group">
                 <div class="form-group">
                     <label for="scriptTextSize">Tamanho do Texto:</label>
@@ -845,13 +849,13 @@
                 <select id="scriptVoiceSelect"></select>
             </div>
             <div class="button-group">
-                <button id="btnGenerateScript"><i class="fa-solid fa-book-open"></i> Gerar Guião/História</button>
+                <button id="btnGenerateScript"><i class="fa-solid fa-book-open"></i> Gerar Roteiro/História</button>
             </div>
             <div id="scriptDisplayContainer" style="display:none;">
-                <h3>Guião/História Gerada:</h3>
+                <h3>Roteiro/História Gerada:</h3>
                 <div id="generatedScriptText"></div>
                 <div class="button-group">
-                    <button id="btnPlayScript" style="display:none;"><i class="fa-solid fa-play-circle"></i> ✨ Ouvir Guião/História</button>
+                    <button id="btnPlayScript" style="display:none;"><i class="fa-solid fa-play-circle"></i> ✨ Ouvir Roteiro/História</button>
                 </div>
             </div>
         </div>
@@ -860,17 +864,17 @@
             <h2><i class="fa-solid fa-language"></i> Tradutor de Texto Inteligente</h2>
             <div class="form-group">
                 <label for="sourceTextToTranslate">Texto para Traduzir:</label>
-                <textarea id="sourceTextToTranslate" placeholder="Introduza o texto aqui..."></textarea>
+                <textarea id="sourceTextToTranslate" placeholder="Insira o texto aqui..."></textarea>
             </div>
             <div class="form-group">
-                <label for="sourceLanguageSelect">Língua de Origem:</label>
+                <label for="sourceLanguageSelect">Idioma de Origem:</label>
                 <select id="sourceLanguageSelect">
-                    <option value="auto">Detetar Automaticamente</option>
+                    <option value="auto">Detectar Automaticamente</option>
                     <option value="pt">Português</option> <option value="en">Inglês</option> <option value="es">Espanhol</option> <option value="fr">Francês</option> <option value="de">Alemão</option> <option value="it">Italiano</option> <option value="ja">Japonês</option> <option value="ko">Coreano</option> <option value="zh">Chinês (Simplificado)</option>
                 </select>
             </div>
             <div class="form-group">
-                <label for="targetLanguageSelect">Língua de Destino:</label>
+                <label for="targetLanguageSelect">Idioma de Destino:</label>
                 <select id="targetLanguageSelect">
                     <option value="pt">Português</option> <option value="en" selected>Inglês</option> <option value="es">Espanhol</option> <option value="fr">Francês</option> <option value="de">Alemão</option> <option value="it">Italiano</option> <option value="ja">Japonês</option> <option value="ko">Coreano</option> <option value="zh">Chinês (Simplificado)</option>
                 </select>
@@ -929,7 +933,7 @@
                  <select id="activityQuestionTypeSelect">
                     <option value="Ambas">Ambas (Objetivas e Subjetivas)</option>
                     <option value="Objetivas">Apenas Objetivas (ex: múltipla escolha, V/F)</option>
-                    <option value="Subjetivas">Apenas Subjetivas (ex: dissertativas, problemas)</option>
+                    <option value="Subjetivas">Apenas Discursivas (ex: discursivas, problemas)</option>
                  </select>
             </div>
             <div class="form-group">
@@ -1036,17 +1040,17 @@
         </div>
 
         <div id="radimakChatSection" class="generator-section">
-            <h2><i class="fa-solid fa-robot"></i> Radimak Chat</h2>
+            <h2><i class="fa-solid fa-robot"></i> Chat Radimak</h2>
             <div id="chatMessagesContainer" style="height: 300px; overflow-y: auto; border: 1px solid var(--border-color); padding: 10px; margin-bottom: 10px; background-color: var(--dark-background); border-radius: 6px;">
                 </div>
-            <textarea id="chatInput" placeholder="Escreva a sua dúvida ou mensagem para o Radimak..." style="min-height: 50px;"></textarea>
+            <textarea id="chatInput" placeholder="Escreva sua dúvida ou mensagem para o Radimak..." style="min-height: 50px;"></textarea>
             <div class="button-group">
                 <button id="btnSendChatMessage"><i class="fa-solid fa-paper-plane"></i> Enviar Mensagem</button>
             </div>
         </div>
 
         <div id="lessonPlanGeneratorSection" class="generator-section">
-            <h2><i class="fa-solid fa-calendar-alt"></i> Gerador de Planejamento de Aula</h2>
+            <h2><i class="fa-solid fa-calendar-alt"></i> Gerador de Plano de Aula</h2>
             <div class="form-group">
                 <label for="lessonPlanYear">Ano/Série:</label>
                 <select id="lessonPlanYear"></select> </div>
@@ -1075,7 +1079,7 @@
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="lessonPlanSize">Tamanho do Planejamento:</label>
+                    <label for="lessonPlanSize">Tamanho do Plano de Aula:</label>
                     <select id="lessonPlanSize">
                         <option value="padrão" selected>Padrão</option>
                         <option value="resumido">Resumido</option>
@@ -1084,17 +1088,17 @@
                 </div>
             </div>
             <div class="button-group">
-                <button id="btnGenerateLessonPlan"><i class="fa-solid fa-cogs"></i> Gerar Planejamento</button>
+                <button id="btnGenerateLessonPlan"><i class="fa-solid fa-cogs"></i> Gerar Plano de Aula</button>
                 <button id="btnExportLessonPlanPdf" style="display:none;"><i class="fa-solid fa-file-pdf"></i> Exportar para PDF</button>
             </div>
             <div id="lessonPlanDisplayContainer" style="display:none;">
-                <h3>Planejamento de Aula Gerado:</h3>
+                <h3>Plano de Aula Gerado:</h3>
                 <div id="generatedLessonPlanText"></div>
             </div>
         </div>
 
         <div id="subjectVerifierSection" class="generator-section">
-            <h2><i class="fa-solid fa-book-reader"></i> Verificador de Assuntos</h2>
+            <h2><i class="fa-solid fa-book-reader"></i> Verificador de Conteúdos</h2>
             <div class="form-group">
                 <label for="verifySubjectYear">Ano/Série:</label>
                 <select id="verifySubjectYear"></select> </div>
@@ -1105,11 +1109,11 @@
                 <label for="verifySubjectContent">Conteúdo a Verificar:</label>
                 <select id="verifySubjectContent"></select> </div>
             <div class="button-group">
-                <button id="btnVerifySubject"><i class="fa-solid fa-search-plus"></i> Verificar Assunto</button>
+                <button id="btnVerifySubject"><i class="fa-solid fa-search-plus"></i> Verificar Conteúdo</button>
                  <button id="btnExportSubjectVerificationPdf" style="display:none;"><i class="fa-solid fa-file-pdf"></i> Exportar para PDF</button>
             </div>
             <div id="subjectVerificationDisplayContainer" style="display:none;">
-                <h3>Detalhes do Assunto:</h3>
+                <h3>Detalhes do Conteúdo:</h3>
                 <div id="verifiedSubjectText"></div>
             </div>
         </div>
@@ -1131,7 +1135,7 @@
                 <label for="proofSubject">Matéria:</label>
                 <select id="proofSubject"></select> </div>
             <div class="form-group">
-                <label for="proofContent">Conteúdo(s) da Prova (separados por vírgula ","):</label>
+                <label for="proofContent">Conteúdo(s) da Prova (separados por vírgula ','):</label>
                 <textarea id="proofContent" placeholder="Ex: Teorema de Pitágoras, Equações de 1º Grau"></textarea>
             </div>
             <div class="text-options-group">
@@ -1147,7 +1151,7 @@
                     <select id="proofQuestionType">
                         <option value="Ambas" selected>Ambas (Objetivas e Subjetivas)</option>
                         <option value="Objetivas">Apenas Objetivas</option>
-                        <option value="Subjetivas">Apenas Subjetivas</option>
+                        <option value="Subjetivas">Apenas Discursivas</option>
                     </select>
                 </div>
             </div>
@@ -1163,6 +1167,53 @@
                 <h3>Prova Gerada:</h3>
                 <div id="generatedProofText"></div>
             </div>
+        </div>
+
+        <div id="youtubeSummarizerSection" class="generator-section">
+            <h2><i class="fab fa-youtube"></i> Resumir Vídeo do YouTube</h2>
+            <div class="form-group">
+                <label for="youtubeLinkInput">Link do Vídeo do YouTube:</label>
+                <input type="url" id="youtubeLinkInput" placeholder="Cole o link do vídeo aqui...">
+            </div>
+            <div class="text-options-group">
+                <div class="form-group">
+                    <label for="youtubeSummarySize">Tamanho do Resumo:</label>
+                    <select id="youtubeSummarySize">
+                        <option value="padrão" selected>Padrão</option>
+                        <option value="detalhado">Detalhado</option>
+                        <option value="tópicos">Em Tópicos</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="youtubeSummaryTone">Tom do Resumo:</label>
+                    <select id="youtubeSummaryTone">
+                        <option value="informativo" selected>Informativo</option>
+                        <option value="casual">Casual</option>
+                        <option value="formal">Formal</option>
+                    </select>
+                </div>
+            </div>
+            <div class="button-group">
+                <button id="btnSummarizeYoutubeVideo"><i class="fa-solid fa-file-lines"></i> Resumir Vídeo</button>
+                <button id="btnExportYoutubeSummaryPdf" style="display:none;"><i class="fa-solid fa-file-pdf"></i> Exportar Resumo para PDF</button>
+            </div>
+            <div id="youtubeSummaryContainer" style="display:none;">
+                <h3>Resumo do Vídeo:</h3>
+                <div id="generatedYoutubeSummaryText"></div>
+            </div>
+        </div>
+
+        <div id="suggestionBoxSection" class="generator-section">
+            <h2><i class="fa-solid fa-lightbulb-on"></i> Enviar Sugestão</h2>
+            <p>Tem alguma ideia para melhorar o Rad IA 2.0? Adoraria ouvir!</p>
+            <div class="form-group">
+                <label for="suggestionText">Sua Sugestão:</label>
+                <textarea id="suggestionText" rows="5" placeholder="Descreva sua sugestão aqui..."></textarea>
+            </div>
+            <div class="button-group">
+                <button id="btnSubmitSuggestion"><i class="fa-solid fa-paper-plane"></i> Enviar Sugestão</button>
+            </div>
+            <div id="suggestionMessage" class="auth-error-message" style="text-align:center;"></div>
         </div>
 
 
@@ -1201,6 +1252,8 @@
         let lessonPlanGeneratorSection, lessonPlanYearSelect, lessonPlanSubjectSelect, lessonPlanContentInput, lessonPlanObjectivesInput, lessonPlanDurationInput, lessonPlanStyleSelect, lessonPlanSizeSelect, btnGenerateLessonPlan, lessonPlanDisplayContainer, generatedLessonPlanText, btnExportLessonPlanPdf;
         let subjectVerifierSection, verifySubjectYearSelect, verifySubjectSubjectSelect, verifySubjectContentSelect, btnVerifySubject, subjectVerificationDisplayContainer, verifiedSubjectText, btnExportSubjectVerificationPdf;
         let proofGeneratorSection, proofInstitutionNameInput, proofTeacherNameInput, proofYearSelect, proofSubjectSelect, proofContentInput, proofNumQuestionsSelect, proofQuestionTypeSelect, proofHeaderImageInput, btnGenerateProof, proofDisplayContainer, generatedProofText, btnExportProofPdf;
+        let youtubeSummarizerSection, youtubeLinkInput, youtubeSummarySizeSelect, youtubeSummaryToneSelect, btnSummarizeYoutubeVideo, youtubeSummaryContainer, generatedYoutubeSummaryText, btnExportYoutubeSummaryPdf;
+        let suggestionBoxSection, suggestionTextInput, btnSubmitSuggestion, suggestionMessageElement;
 
 
         let mediaRecorder;
@@ -1208,10 +1261,12 @@
         let lastAttemptedMimeType = '';
 
         const availableVoices = [
-            { name: "Zephyr", value: "Zephyr" }, { name: "Puck", value: "Puck" },
-            { name: "Charon", value: "Charon" }, { name: "Kore", value: "Kore" },
-            { name: "Alnilam", value: "Alnilam" }, { name: "Sadachbia", value: "Sadachbia" },
-            { name: "Leda", value: "Leda" }
+            { name: "Português (Brasil) - Voz A (Feminina, WaveNet)", value: "pt-BR-Wavenet-A" },
+            { name: "Português (Brasil) - Voz B (Masculina, WaveNet)", value: "pt-BR-Wavenet-B" },
+            { name: "Português (Brasil) - Voz C (Masculina, WaveNet)", value: "pt-BR-Wavenet-C" },
+            { name: "Português (Brasil) - Voz D (Feminina, WaveNet)", value: "pt-BR-Wavenet-D" },
+            { name: "Português (Brasil) - Voz E (Feminina, Standard)", value: "pt-BR-Standard-A" },
+            { name: "Português (Brasil) - Voz F (Masculina, Standard)", value: "pt-BR-Standard-B" }
         ];
         const conteudosPorMateriaAno = {
             "Matemática": {
@@ -1455,6 +1510,20 @@
             generatedProofText = document.getElementById('generatedProofText');
             btnExportProofPdf = document.getElementById('btnExportProofPdf');
 
+            youtubeSummarizerSection = document.getElementById('youtubeSummarizerSection');
+            youtubeLinkInput = document.getElementById('youtubeLinkInput');
+            youtubeSummarySizeSelect = document.getElementById('youtubeSummarySize');
+            youtubeSummaryToneSelect = document.getElementById('youtubeSummaryTone');
+            btnSummarizeYoutubeVideo = document.getElementById('btnSummarizeYoutubeVideo');
+            youtubeSummaryContainer = document.getElementById('youtubeSummaryContainer');
+            generatedYoutubeSummaryText = document.getElementById('generatedYoutubeSummaryText');
+            btnExportYoutubeSummaryPdf = document.getElementById('btnExportYoutubeSummaryPdf');
+
+            suggestionBoxSection = document.getElementById('suggestionBoxSection');
+            suggestionTextInput = document.getElementById('suggestionText');
+            btnSubmitSuggestion = document.getElementById('btnSubmitSuggestion');
+            suggestionMessageElement = document.getElementById('suggestionMessage');
+
 
             if (window.firebaseServices && window.firebaseServices.auth) {
                 setupLoginSystem(window.firebaseServices);
@@ -1520,7 +1589,7 @@
             const email = loginEmailInput.value;
             const password = loginPasswordInput.value;
             clearAuthErrors();
-            showLoading("A tentar login...");
+            showLoading("Tentando login...");
             try {
                 await firebase.signInWithEmailAndPassword(firebase.auth, email, password);
             } catch (error) {
@@ -1551,7 +1620,7 @@
                 displaySignUpError("As senhas não coincidem.");
                 return;
             }
-            showLoading("A criar conta...");
+            showLoading("Criando conta...");
             try {
                 const userCredential = await firebase.createUserWithEmailAndPassword(firebase.auth, email, password);
                 await firebase.updateProfile(userCredential.user, { displayName: username });
@@ -1568,7 +1637,7 @@
             if (!forgotPasswordEmailInput || !firebase || !firebase.auth) return;
             const email = forgotPasswordEmailInput.value;
             clearAuthErrors();
-            showLoading("A enviar link de redefinição...");
+            showLoading("Enviando link de redefinição...");
             try {
                 await firebase.sendPasswordResetEmail(firebase.auth, email);
                 if(forgotPasswordMessageElement) {
@@ -1593,7 +1662,7 @@
 
         async function handleLogout(firebase) {
             if (!firebase || !firebase.auth) return;
-            showLoading("A sair...");
+            showLoading("Saindo...");
             try {
                 await firebase.signOut(firebase.auth);
             } catch (error) {
@@ -1613,7 +1682,7 @@
                 displayProfileUpdateMessage("O nome de usuário não pode estar vazio.", true);
                 return;
             }
-            showLoading("A atualizar nome...");
+            showLoading("Atualizando nome...");
             try {
                 await firebase.updateProfile(firebase.auth.currentUser, { displayName: newUsername });
                 displayProfileUpdateMessage("Nome de usuário atualizado com sucesso!", false);
@@ -1647,6 +1716,11 @@
 
             const firstValidSectionLink = document.querySelector('.side-menu .tool-link[data-target="fileToPodcastSection"]');
             if (firstValidSectionLink) {
+                document.querySelectorAll('.side-menu .tool-link').forEach(l => l.classList.remove('active'));
+                document.querySelectorAll('.generator-section').forEach(s => {
+                    s.classList.remove('active');
+                    s.style.display = 'none';
+                });
                 firstValidSectionLink.click();
             }
         }
@@ -1751,6 +1825,7 @@
                 podcastScriptDisplayContainer, scriptDisplayContainer,
                 activityDisplayContainer, translatedTextContainer, slideContentContainer, reportContentContainer,
                 lessonPlanDisplayContainer, subjectVerificationDisplayContainer, proofDisplayContainer
+                // Removido: youtubeSummaryContainer
             ];
             resultContainers.forEach(container => {
                 if (container) container.style.display = 'none';
@@ -1760,6 +1835,7 @@
                 generatedPodcastScriptText, generatedScriptText,
                 generatedActivityText, translatedTextOutput, generatedSlideContent,
                 generatedReportContent, generatedLessonPlanText, verifiedSubjectText, generatedProofText
+                // Removido: generatedYoutubeSummaryText
             ];
             resultTexts.forEach(textElement => {
                 if (textElement) textElement.textContent = '';
@@ -1772,6 +1848,7 @@
                 btnExportPodcastScriptPdf, btnPlayScript, btnExportActivityPdf,
                 btnPlayTranslatedText, btnExportSlidePdf, btnExportSlidePptx,
                 btnExportReportPdf, btnExportLessonPlanPdf, btnExportSubjectVerificationPdf, btnExportProofPdf
+                // Removido: btnExportYoutubeSummaryPdf
             ];
             dynamicButtons.forEach(button => {
                 if (button) button.style.display = 'none';
@@ -1788,7 +1865,7 @@
                     return 'Este usuário foi desabilitado.';
                 case 'auth/user-not-found':
                 case 'auth/invalid-credential':
-                    return 'E-mail ou senha inválidos.';
+                    return 'E-mail ou senha inválidos. Verifique os dados ou crie uma conta se ainda não tiver uma.';
                 case 'auth/wrong-password':
                     return 'Senha incorreta.';
                 case 'auth/email-already-in-use':
@@ -1851,6 +1928,7 @@
                 link.addEventListener('click', function(event) {
                     event.preventDefault();
                     const targetId = this.getAttribute('data-target');
+                    const targetSection = document.getElementById(targetId);
 
                     navLinks.forEach(navLink => navLink.classList.remove('active'));
                     this.classList.add('active');
@@ -1859,16 +1937,16 @@
                         if (section) {
                             if (section.id === targetId) {
                                 section.style.display = 'block';
-                                setTimeout(() => { section.classList.add('active'); }, 10);
+                                requestAnimationFrame(() => {
+                                    section.classList.add('active');
+                                });
                             } else {
                                 section.classList.remove('active');
-                                // A transição de opacidade é feita pelo CSS quando 'active' é removido.
-                                // O display:none é aplicado após a transição para não cortar abruptamente.
                                 setTimeout(() => {
-                                    if (!section.classList.contains('active')) { // Checa novamente para evitar esconder a seção que acabou de ser ativada
+                                    if (!section.classList.contains('active')) {
                                         section.style.display = 'none';
                                     }
-                                }, 300); // Duração da transição de opacidade
+                                }, 300);
                             }
                         }
                     });
@@ -1889,7 +1967,7 @@
                 if (textToSpeak) {
                     gerarFalaComIA(textToSpeak, "Texto Introduzido", false, selectedVoice);
                 } else {
-                    displayErrorMessage("Por favor, introduza o texto que deseja converter em fala.");
+                    displayErrorMessage("Por favor, introduza o texto que deseja converter em voz.");
                 }
             });
             if (btnProcessFileToSpeech) btnProcessFileToSpeech.addEventListener('click', processFileToSpeech);
@@ -1898,14 +1976,14 @@
                 const scriptContent = generatedScriptText.textContent;
                 const selectedVoice = scriptVoiceSelect.value;
                 if (scriptContent) {
-                    gerarFalaComIA(scriptContent, "Guião/História Gerada", false, selectedVoice);
+                    gerarFalaComIA(scriptContent, "Roteiro/História Gerada", false, selectedVoice);
                 }
             });
             if (btnGenerateActivity) btnGenerateActivity.addEventListener('click', gerarAtividadesComIA);
             if (activityYearSelect) activityYearSelect.addEventListener('change', updateSpecificContentOptions);
             if (activitySubjectSelect) activitySubjectSelect.addEventListener('change', updateSpecificContentOptions);
 
-            if (btnExportPodcastScriptPdf) btnExportPodcastScriptPdf.addEventListener('click', () => exportTextToPdf(generatedPodcastScriptText.textContent, "guiao_podcast.pdf"));
+            if (btnExportPodcastScriptPdf) btnExportPodcastScriptPdf.addEventListener('click', () => exportTextToPdf(generatedPodcastScriptText.textContent, "roteiro_podcast.pdf"));
             if (btnExportActivityPdf) btnExportActivityPdf.addEventListener('click', () => exportTextToPdf(generatedActivityText.textContent, "atividades_geradas.pdf"));
             if (btnTranslateText) btnTranslateText.addEventListener('click', translateTextWithAI);
             if (btnPlayTranslatedText) btnPlayTranslatedText.addEventListener('click', () => {
@@ -1924,11 +2002,15 @@
 
             // Listeners para Novas Funcionalidades
             if (btnGenerateLessonPlan) btnGenerateLessonPlan.addEventListener('click', gerarPlanejamentoDeAula);
-            if (btnExportLessonPlanPdf) btnExportLessonPlanPdf.addEventListener('click', () => exportTextToPdf(generatedLessonPlanText.textContent, "planejamento_aula.pdf"));
+            if (btnExportLessonPlanPdf) btnExportLessonPlanPdf.addEventListener('click', () => exportTextToPdf(generatedLessonPlanText.textContent, "plano_de_aula.pdf"));
             if (btnVerifySubject) btnVerifySubject.addEventListener('click', verificarAssunto);
-            if (btnExportSubjectVerificationPdf) btnExportSubjectVerificationPdf.addEventListener('click', () => exportTextToPdf(verifiedSubjectText.textContent, "verificacao_assunto.pdf"));
+            if (btnExportSubjectVerificationPdf) btnExportSubjectVerificationPdf.addEventListener('click', () => exportTextToPdf(verifiedSubjectText.textContent, "verificacao_conteudo.pdf"));
             if (btnGenerateProof) btnGenerateProof.addEventListener('click', gerarProva);
             if (btnExportProofPdf) btnExportProofPdf.addEventListener('click', () => exportTextToPdf(generatedProofText.textContent, "prova_gerada.pdf"));
+            // Removido: if (btnSummarizeYoutubeVideo) btnSummarizeYoutubeVideo.addEventListener('click', resumirVideoYouTube);
+            // Removido: if (btnExportYoutubeSummaryPdf) btnExportYoutubeSummaryPdf.addEventListener('click', () => exportTextToPdf(generatedYoutubeSummaryText.textContent, "resumo_video_youtube.pdf"));
+            if (btnSubmitSuggestion) btnSubmitSuggestion.addEventListener('click', enviarSugestao);
+
 
             if (lessonPlanYearSelect) lessonPlanYearSelect.addEventListener('change', () => updateSpecificContentOptionsForForm(lessonPlanYearSelect, lessonPlanSubjectSelect, null));
             if (lessonPlanSubjectSelect) lessonPlanSubjectSelect.addEventListener('change', () => updateSpecificContentOptionsForForm(lessonPlanYearSelect, lessonPlanSubjectSelect, null));
@@ -1945,7 +2027,7 @@
                     switch (audioPlayer.error.code) {
                         case MediaError.MEDIA_ERR_ABORTED: specificError = "A reprodução do áudio foi abortada."; break;
                         case MediaError.MEDIA_ERR_NETWORK: specificError = "Ocorreu um erro de rede ao carregar o áudio."; break;
-                        case MediaError.MEDIA_ERR_DECODE: specificError = "Ocorreu um erro ao descodificar o áudio. O formato pode ser inválido ou não suportado."; break;
+                        case MediaError.MEDIA_ERR_DECODE: specificError = "Ocorreu um erro ao decodificar o áudio. O formato pode ser inválido ou não suportado."; break;
                         case MediaError.MEDIA_ERR_SRC_NOT_SUPPORTED: specificError = "O formato do áudio não é suportado ou a fonte não pôde ser encontrada."; break;
                         default: specificError = `Ocorreu um erro ao carregar o áudio (código: ${audioPlayer.error.code}).`;
                     }
@@ -1957,11 +2039,10 @@
 
         function populateVoiceSelectors() {
             const selectors = [
-                { id: 'podcastSpeaker1Voice', default: 'Charon' },
-                { id: 'podcastSpeaker2Voice', default: 'Kore' },
-                { id: 'ttsVoiceSelect', default: 'Zephyr' },
-                { id: 'scriptVoiceSelect', default: 'Zephyr' },
-                { id: 'translatorVoiceSelect', default: 'Zephyr'}
+                { id: 'podcastSpeaker1Voice', default: 'pt-BR-Wavenet-A' },
+                { id: 'ttsVoiceSelect', default: 'pt-BR-Wavenet-D' },
+                { id: 'scriptVoiceSelect', default: 'pt-BR-Wavenet-A' },
+                { id: 'translatorVoiceSelect', default: 'pt-BR-Wavenet-B'}
             ];
 
             selectors.forEach(selInfo => {
@@ -2050,7 +2131,7 @@
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
                 reader.onload = () => resolve(reader.result.split(',')[1]);
-                reader.onerror = error => reject(new Error(`Erro ao ler o ficheiro: ${error.message}`));
+                reader.onerror = error => reject(new Error(`Erro ao ler o arquivo: ${error.message}`));
                 reader.readAsDataURL(file);
             });
         }
@@ -2059,7 +2140,7 @@
              return new Promise((resolve, reject) => {
                 const reader = new FileReader();
                 reader.onload = () => resolve(reader.result);
-                reader.onerror = error => reject(new Error(`Erro ao ler o ficheiro de texto: ${error.message}`));
+                reader.onerror = error => reject(new Error(`Erro ao ler o arquivo de texto: ${error.message}`));
                 reader.readAsText(file);
             });
         }
@@ -2082,7 +2163,7 @@
                 maxTokens = 3500;
                 contentPart = { text: data };
             } else {
-                throw new Error("Tipo de ficheiro não suportado para resumo.");
+                throw new Error("Tipo de arquivo não suportado para resumo.");
             }
 
             const payload = {
@@ -2090,7 +2171,7 @@
                 generationConfig: { maxOutputTokens: maxTokens, temperature: 0.6 }
             };
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${geminiFlashApiKey}`;
-            showLoading(`A gerar resumo de ${fileType}...`);
+            showLoading(`Gerando resumo de ${fileType}...`);
             const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
             if (!response.ok) {
                 const errorData = await response.json();
@@ -2105,9 +2186,9 @@
 
         async function generateDialogueFromSummary(summaryText) {
             if (!geminiFlashApiKey) throw new Error("API key para Gemini Flash (geração de diálogo) não configurada.");
-            showLoading("A criar guião de diálogo para o podcast...");
+            showLoading("Criando roteiro de diálogo para o podcast...");
 
-            const prompt = `Com base no seguinte resumo detalhado, crie um guião de diálogo extenso e envolvente (visando aproximadamente 1000-1500 palavras) entre duas pessoas (identificadas como "Speaker 1:" e "Speaker 2:") para um podcast. O diálogo deve explorar os pontos principais do resumo de forma natural, aprofundada e conversacional. Formate o guião claramente com "Speaker 1:" e "Speaker 2:" antes de cada fala. Não adicione nenhuma introdução ou conclusão ao diálogo, apenas as falas dos speakers. Não use formatação Markdown como asteriscos. Resumo:\n\n${summaryText}`;
+            const prompt = `Com base no seguinte resumo detalhado, crie um roteiro de diálogo extenso e envolvente (visando aproximadamente 1000-1500 palavras) entre duas pessoas (identificadas como "Speaker 1:" e "Speaker 2:") para um podcast. O diálogo deve explorar os pontos principais do resumo de forma natural, aprofundada e conversacional. Formate o roteiro claramente com "Speaker 1:" e "Speaker 2:" antes de cada fala. Não adicione nenhuma introdução ou conclusão ao diálogo, apenas as falas dos speakers. Não use formatação Markdown como asteriscos. Resumo:\n\n${summaryText}`;
 
             const payload = {
                 contents: [{ role: "user", parts: [{ text: prompt }] }],
@@ -2127,19 +2208,19 @@
                 if(btnExportPodcastScriptPdf) btnExportPodcastScriptPdf.style.display = 'inline-flex';
                 return dialogue;
             }
-            throw new Error("Não foi possível gerar o guião do diálogo a partir do resumo.");
+            throw new Error("Não foi possível gerar o roteiro do diálogo a partir do resumo.");
         }
 
 
         async function processFileToSpeech() {
             if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
-                displayErrorMessage("Por favor, selecione um ficheiro.");
+                displayErrorMessage("Por favor, selecione um arquivo.");
                 return;
             }
             const file = fileInput.files[0];
 
             clearErrorMessage();
-            showLoading("A processar ficheiro...");
+            showLoading("Processando arquivo...");
             if(audioPlayerContainer) audioPlayerContainer.style.display = 'none';
             if(podcastScriptDisplayContainer) podcastScriptDisplayContainer.style.display = 'none';
             if(btnExportPodcastScriptPdf) btnExportPodcastScriptPdf.style.display = 'none';
@@ -2164,38 +2245,39 @@
                     fileTypeForSummary = "text";
                     fileContentForSummary = await readFileAsText(file);
                     summaryText = await getSummaryForTTS(fileContentForSummary, "text/plain", fileTypeForSummary);
-                    fileDescriptionForTTS = `Podcast sobre o ficheiro ${file.name}`;
+                    fileDescriptionForTTS = `Podcast sobre o arquivo ${file.name}`;
                 } else {
-                    throw new Error(`Tipo de ficheiro não suportado: ${file.type}. Por favor, selecione uma imagem, PDF ou ficheiro .txt.`);
+                    throw new Error(`Tipo de arquivo não suportado: ${file.type}. Por favor, selecione uma imagem, PDF ou arquivo .txt.`);
                 }
 
                 if (summaryText) {
                     const dialogueScript = await generateDialogueFromSummary(summaryText);
                     if (dialogueScript) {
-                        await gerarFalaComIA(dialogueScript, fileDescriptionForTTS, true);
+                        const podcastVoice = document.getElementById('podcastSpeaker1Voice')?.value || 'pt-BR-Wavenet-A';
+                        await gerarFalaComIA(dialogueScript, fileDescriptionForTTS, false, podcastVoice);
                     } else {
-                        throw new Error("Falha ao gerar o guião do diálogo.");
+                        throw new Error("Falha ao gerar o roteiro do diálogo.");
                     }
                 } else {
-                    throw new Error("Não foi possível extrair ou resumir conteúdo do ficheiro para conversão em fala.");
+                    throw new Error("Não foi possível extrair ou resumir conteúdo do arquivo para conversão em voz.");
                 }
 
             } catch (error) {
-                console.error("Erro ao processar ficheiro para fala:", error);
-                displayErrorMessage(`Erro ao processar ficheiro: ${error.message}`);
+                console.error("Erro ao processar arquivo para fala:", error);
+                displayErrorMessage(`Erro ao processar arquivo: ${error.message}`);
             } finally {
                 hideLoading();
             }
         }
 
         async function gerarGuiaoHistoria() {
-            if (!scriptPromptTextarea || !scriptTextSizeSelect || !scriptTextToneSelect) { displayErrorMessage("Elementos do formulário de guião não encontrados."); return; }
+            if (!scriptPromptTextarea || !scriptTextSizeSelect || !scriptTextToneSelect) { displayErrorMessage("Elementos do formulário de roteiro não encontrados."); return; }
             const promptText = scriptPromptTextarea.value.trim();
             const textSize = scriptTextSizeSelect.value;
             const textTone = scriptTextToneSelect.value;
 
             if (!promptText) {
-                displayErrorMessage("Por favor, forneça um tema ou ideia para o guião/história.");
+                displayErrorMessage("Por favor, forneça um tema ou ideia para o roteiro/história.");
                 return;
             }
             if (!geminiFlashApiKey) {
@@ -2203,11 +2285,11 @@
                 return;
             }
             clearErrorMessage();
-            showLoading("A gerar guião/história...");
+            showLoading("Gerando roteiro/história...");
             if(scriptDisplayContainer) scriptDisplayContainer.style.display = 'none';
             if(btnPlayScript) btnPlayScript.style.display = 'none';
 
-            const generationPrompt = `Crie um guião ou uma história com base no seguinte: "${promptText}". O texto deve ter um tamanho ${textSize} e um tom ${textTone}. Se for um guião, defina claramente os personagens e as suas falas (ex: PERSONAGEM: Fala.). Se for uma história, escreva uma narrativa envolvente. Não use formatação Markdown como asteriscos.`;
+            const generationPrompt = `Crie um roteiro ou uma história com base no seguinte: "${promptText}". O texto deve ter um tamanho ${textSize} e um tom ${textTone}. Se for um roteiro, defina claramente os personagens e as suas falas (ex: PERSONAGEM: Fala.). Se for uma história, escreva uma narrativa envolvente. Não use formatação Markdown como asteriscos.`;
 
             try {
                 const payload = {
@@ -2222,7 +2304,7 @@
                 });
                 if (!response.ok) {
                     const errorData = await response.json();
-                    throw new Error(`Erro da API ao gerar guião (${response.status}): ${errorData?.error?.message || response.statusText}`);
+                    throw new Error(`Erro da API ao gerar roteiro (${response.status}): ${errorData?.error?.message || response.statusText}`);
                 }
                 const result = await response.json();
                 if (result.candidates?.[0]?.content?.parts?.[0]?.text) {
@@ -2231,7 +2313,7 @@
                     if(scriptDisplayContainer) scriptDisplayContainer.style.display = 'block';
                     if(btnPlayScript) btnPlayScript.style.display = 'inline-flex';
                 } else {
-                    throw new Error("Não foi possível obter o guião/história da resposta da API.");
+                    throw new Error("Não foi possível obter o roteiro/história da resposta da API.");
                 }
             } catch (error) {
                 displayErrorMessage(error.message);
@@ -2262,7 +2344,7 @@
                 return;
             }
             clearErrorMessage();
-            showLoading("A gerar atividades...");
+            showLoading("Gerando atividades...");
             if(activityDisplayContainer) activityDisplayContainer.style.display = 'none';
             if(btnExportActivityPdf) btnExportActivityPdf.style.display = 'none';
 
@@ -2270,9 +2352,9 @@
             if (tipoQuestao === "Objetivas") {
                 tipoQuestaoPrompt = "As questões devem ser primariamente objetivas (ex: múltipla escolha com 4 alternativas, verdadeiro ou falso).";
             } else if (tipoQuestao === "Subjetivas") {
-                tipoQuestaoPrompt = "As questões devem ser primariamente subjetivas (ex: dissertativas curtas, resolução de problemas passo a passo, interpretação).";
+                tipoQuestaoPrompt = "As questões devem ser primariamente discursivas (ex: discursivas curtas, resolução de problemas passo a passo, interpretação).";
             } else {
-                tipoQuestaoPrompt = "As questões devem ser variadas, incluindo tanto objetivas (ex: múltipla escolha, V/F) quanto subjetivas (ex: dissertativas curtas, problemas).";
+                tipoQuestaoPrompt = "As questões devem ser variadas, incluindo tanto objetivas (ex: múltipla escolha, V/F) quanto discursivas (ex: discursivas curtas, problemas).";
             }
 
             const prompt = `Crie ${numQuestoes} questões de ${materia} para alunos do ${activityYearSelect.options[activityYearSelect.selectedIndex].text}, focadas no seguinte conteúdo: "${conteudo}". ${tipoQuestaoPrompt} As questões devem ser claras e adequadas ao nível de ensino, com um tamanho de texto ${textSize} e um tom ${textTone}. Formate a saída de forma organizada, numerando cada questão. Se incluir questões de múltipla escolha, forneça 4 alternativas (A, B, C, D) e indique a resposta correta no final de cada questão objetiva entre parênteses, por exemplo: (Resposta: C). Não use formatação Markdown como asteriscos. Inclua um cabeçalho simples no início do texto gerado com o nome da Matéria, Ano/Série e Conteúdo.`;
@@ -2325,13 +2407,13 @@
                 return;
             }
             clearErrorMessage();
-            showLoading("A traduzir texto...");
+            showLoading("Traduzindo texto...");
             if(translatedTextContainer) translatedTextContainer.style.display = 'none';
             if(btnPlayTranslatedText) btnPlayTranslatedText.style.display = 'none';
 
             let translationPrompt = "";
             if (sourceLang === "auto") {
-                translationPrompt = `Identifique a língua do seguinte texto e traduza-o para ${targetLanguageSelect.options[targetLanguageSelect.selectedIndex].text}. Não use formatação Markdown como asteriscos:\n\n"${textToTranslate}"`;
+                translationPrompt = `Identifique o idioma do seguinte texto e traduza-o para ${targetLanguageSelect.options[targetLanguageSelect.selectedIndex].text}. Não use formatação Markdown como asteriscos:\n\n"${textToTranslate}"`;
             } else {
                 translationPrompt = `Traduza o seguinte texto de ${sourceLanguageSelect.options[sourceLanguageSelect.selectedIndex].text} para ${targetLanguageSelect.options[targetLanguageSelect.selectedIndex].text}. Não use formatação Markdown como asteriscos:\n\n"${textToTranslate}"`;
             }
@@ -2387,7 +2469,7 @@
                 return;
             }
             clearErrorMessage();
-            showLoading("A gerar conteúdo dos slides...");
+            showLoading("Gerando conteúdo dos slides...");
             if(slideContentContainer) slideContentContainer.style.display = 'none';
             if(btnExportSlidePdf) btnExportSlidePdf.style.display = 'none';
             if(btnExportSlidePptx) btnExportSlidePptx.style.display = 'none';
@@ -2469,7 +2551,7 @@
                 return;
             }
             clearErrorMessage();
-            showLoading("A gerar estrutura do relatório...");
+            showLoading("Gerando estrutura do relatório...");
             if(reportContentContainer) reportContentContainer.style.display = 'none';
             if(btnExportReportPdf) btnExportReportPdf.style.display = 'none';
 
@@ -2535,7 +2617,7 @@
                 appendMessageToChat("radimak", "Desculpe, a API key para o Radimak não está configurada.");
                 return;
             }
-            showLoading("Radimak a pensar...");
+            showLoading("Radimak pensando...");
 
             radimakChatHistory.push({ role: "user", parts: [{ text: messageText }] });
 
@@ -2561,7 +2643,7 @@
                     appendMessageToChat("radimak", radimakResponse);
                     radimakChatHistory.push({ role: "model", parts: [{ text: radimakResponse }] });
                 } else {
-                    appendMessageToChat("radimak", "Desculpe, não consegui processar a sua mensagem neste momento.");
+                    appendMessageToChat("radimak", "Desculpe, não consegui processar sua mensagem neste momento.");
                 }
             } catch (error) {
                 appendMessageToChat("radimak", `Ocorreu um erro: ${error.message}`);
@@ -2604,7 +2686,7 @@
                 return;
             }
             clearErrorMessage();
-            showLoading("A gerar ficheiro PPTX...");
+            showLoading("Gerando arquivo PPTX...");
 
             try {
                 if (typeof PptxGenJS === 'undefined') {
@@ -2666,10 +2748,10 @@
                 }
 
                 pptx.writeFile({ fileName: 'apresentacao_gerada.pptx' })
-                    .then(() => console.log("Ficheiro PPTX gerado com sucesso."))
+                    .then(() => console.log("Arquivo PPTX gerado com sucesso."))
                     .catch(err => {
                         console.error("Erro ao gerar PPTX:", err);
-                        displayErrorMessage("Erro ao gerar o ficheiro PPTX.");
+                        displayErrorMessage("Erro ao gerar o arquivo PPTX.");
                     });
 
             } catch (error) {
@@ -2736,11 +2818,11 @@
                 return;
             }
             clearErrorMessage();
-            showLoading("A gerar imagem com IA, aguarde...");
+            showLoading("Gerando imagem com IA, aguarde...");
             if(aiGeneratedImageElement) aiGeneratedImageElement.style.display = 'none';
             if(aiImagePlaceholder) {
                 aiImagePlaceholder.style.display = 'block';
-                aiImagePlaceholder.textContent = "A sua imagem gerada por IA aparecerá aqui.";
+                aiImagePlaceholder.textContent = "Sua imagem gerada por IA aparecerá aqui.";
                 aiImagePlaceholder.style.color = "#6c757d";
             }
             if(btnDownloadAiImage) btnDownloadAiImage.style.display = 'none';
@@ -2820,7 +2902,7 @@
                 aiGeneratedImageElement.style.display = 'none';
             }
             if(aiImagePlaceholder) {
-                aiImagePlaceholder.textContent = "A sua imagem gerada por IA aparecerá aqui.";
+                aiImagePlaceholder.textContent = "Sua imagem gerada por IA aparecerá aqui.";
                 aiImagePlaceholder.style.color = "#6c757d";
                 aiImagePlaceholder.style.display = 'block';
             }
@@ -2853,7 +2935,7 @@
         }
 
         function convertPcmToWav(base64PcmData, originalMimeType) {
-            console.log("A converter PCM para WAV. MimeType Original:", originalMimeType);
+            console.log("Convertendo PCM para WAV. MimeType Original:", originalMimeType);
             const pcmData = Uint8Array.from(atob(base64PcmData), c => c.charCodeAt(0));
             const params = parseAudioMimeType(originalMimeType);
             const sampleRate = params.rate;
@@ -2893,57 +2975,37 @@
             }
         }
 
-        async function gerarFalaComIA(textToSpeak, sourceTitle = "Texto", isMultiSpeaker = false, voice1 = "Charon", voice2 = "Kore") {
+        async function gerarFalaComIA(textToSpeak, sourceTitle = "Texto", isMultiSpeaker = false, voiceName = "pt-BR-Wavenet-A") {
             if (!textToSpeak || textToSpeak.trim() === "") {
-                displayErrorMessage("Não há texto para converter em fala.");
+                displayErrorMessage("Não há texto para converter em voz.");
                 if(audioPlayerContainer) audioPlayerContainer.style.display = 'none';
                 return;
             }
             if (!ttsApiKey) {
-                displayErrorMessage("A API key para o serviço de Text-to-Speech (TTS) não está configurada.");
+                displayErrorMessage("A API key para o serviço de Text-to-Speech não está configurada.");
                 if(audioPlayerContainer) audioPlayerContainer.style.display = 'none';
                 return;
             }
             clearErrorMessage();
-            showLoading(`A gerar fala para "${sourceTitle}", aguarde...`);
+            showLoading(`Gerando voz para "${sourceTitle}", aguarde...`);
             if(audioPlayerContainer) audioPlayerContainer.style.display = 'none';
 
             try {
-                const ttsModel = "gemini-1.5-flash-preview-tts";
-                let speechConfigPayload = {};
-
-                if (isMultiSpeaker) {
-                    const speaker1Voice = document.getElementById('podcastSpeaker1Voice')?.value || voice1;
-                    const speaker2Voice = document.getElementById('podcastSpeaker2Voice')?.value || voice2;
-                    speechConfigPayload = {
-                        multiSpeakerVoiceConfig: {
-                            speakerVoiceConfigs: [
-                                { speaker: "Speaker 1", voiceConfig: { prebuiltVoiceConfig: { voice_name: speaker1Voice } } },
-                                { speaker: "Speaker 2", voiceConfig: { prebuiltVoiceConfig: { voice_name: speaker2Voice } } }
-                            ]
-                        }
-                    };
-                } else {
-                     speechConfigPayload = {
-                        voiceConfig: {
-                            prebuiltVoiceConfig: { voice_name: voice1 }
-                        }
-                    };
-                }
-
+                // Usando a API Google Cloud Text-to-Speech diretamente
+                const apiUrl = `https://texttospeech.googleapis.com/v1/text:synthesize?key=${ttsApiKey}`;
                 const payload = {
-                    contents: [{
-                        role: "user",
-                        parts: [{ text: textToSpeak.replace(/\*\*/g, '') }]
-                    }],
-                    generationConfig: {
-                        response_modalities: ["audio"],
-                        temperature: 0.7,
-                        speechConfig: speechConfigPayload
+                    input: {
+                        text: textToSpeak.replace(/\*\*/g, '')
+                    },
+                    voice: {
+                        languageCode: "pt-BR",
+                        name: voiceName
+                    },
+                    audioConfig: {
+                        audioEncoding: "MP3"
                     }
                 };
 
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${ttsModel}:generateContent?key=${ttsApiKey}`;
                 const response = await fetch(apiUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -2952,92 +3014,43 @@
 
                 if (!response.ok) {
                     const errorData = await response.json();
-                    console.error("Erro da API TTS:", errorData);
-                    let detailedErrorMessage = `Erro da API TTS (${response.status}): ${response.statusText || 'Erro desconhecido'}.`;
-                    if (errorData?.error?.message) {
-                        detailedErrorMessage += ` Detalhes: ${errorData.error.message}`;
-                         if (response.status === 429 || errorData.error.message.toLowerCase().includes("quota") || errorData.error.message.toLowerCase().includes("resource_exhausted")) {
-                            detailedErrorMessage = "Erro: Excedeu a sua quota atual para o serviço TTS. Por favor, verifique o seu plano e detalhes de faturação ou tente novamente mais tarde.";
-                             if (errorData.details) {
-                                const helpLinkObj = errorData.details.find(d => d["@type"] === "type.googleapis.com/google.rpc.Help");
-                                const helpLink = helpLinkObj?.links?.[0]?.url;
-                                if (helpLink) {
-                                    detailedErrorMessage += ` Consulte: ${helpLink}`;
-                                }
-                            }
-                        } else if (response.status === 500 || errorData.error.message.toLowerCase().includes("internal error")) {
-                            detailedErrorMessage = `Erro Interno do Servidor (500) ao contactar a API TTS. Por favor, tente novamente mais tarde. Se o problema persistir, reporte em https://developers.generativeai.google/guide/troubleshooting. (Detalhe API: ${errorData.error.message})`;
-                        } else if (errorData.error.message.toLowerCase().includes("api key not valid")) {
-                            detailedErrorMessage = "Erro: A API key fornecida para o serviço de TTS não é válida ou o modelo não está acessível com esta chave.";
-                        } else if (errorData.error.message.toLowerCase().includes("billed users") || errorData.error.message.toLowerCase().includes("billing")) {
-                             detailedErrorMessage = "Erro: A API de TTS pode requerer uma conta Google Cloud com faturação ativa.";
-                        } else if (errorData.error.message.toLowerCase().includes("model not found") || errorData.error.message.toLowerCase().includes("is not supported") || errorData.error.message.toLowerCase().includes("voice name") ) {
-                            detailedErrorMessage = `Erro: O modelo TTS ('${ttsModel}') ou a voz configurada não foram encontrados ou não são suportados. Verifique o nome do modelo, a voz e a documentação da API. (Detalhe API: ${errorData.error.message})`;
-                        }
+                    console.error("Erro da API Google Cloud Text-to-Speech:", errorData);
+                    let detailedErrorMessage = `Erro da API TTS (${response.status}): ${errorData?.error?.message || response.statusText || 'Erro desconhecido'}.`;
+                    if (errorData?.error?.details?.[0]?.['@type'] === 'type.googleapis.com/google.rpc.ErrorInfo' &&
+                        (errorData.error.details[0].reason === 'SERVICE_DISABLED' || errorData.error.details[0].reason === 'API_KEY_SERVICE_BLOCKED')) {
+                        detailedErrorMessage = `Erro: A API Cloud Text-to-Speech não está habilitada ou está bloqueada no seu projeto Google Cloud (${window.fbConfig?.projectId || 'SEU_PROJECT_ID'}). Por favor, habilite-a e verifique o faturamento no console do Google Cloud.`;
+                    } else if (errorData?.error?.message?.toLowerCase().includes("api key not valid")) {
+                         detailedErrorMessage = "Erro: A API key fornecida para o serviço de TTS não é válida.";
                     }
                     throw new Error(detailedErrorMessage);
                 }
 
                 const result = await response.json();
-                if (result.candidates && result.candidates.length > 0) {
-                    const candidate = result.candidates[0];
-                    if (candidate.finishReason !== "STOP") {
-                         if (!candidate.content?.parts?.[0]?.inlineData?.data) {
-                            let finishReasonMessage = `O modelo TTS não concluiu a geração com sucesso. Motivo: ${candidate.finishReason || 'Desconhecido'}. Não foi possível obter dados de áudio.`;
-                            if (candidate.finishReason === "OTHER") {
-                                console.error("Resposta completa da API (finishReason OTHER, sem dados de áudio):", JSON.stringify(result, null, 2));
-                                finishReasonMessage += " Isto pode indicar um problema com o texto de entrada (demasiado longo, caracteres inválidos), uma instabilidade temporária da API, ou o modelo pode não ter conseguido gerar áudio para este pedido específico. Tente com um texto mais simples ou mais curto, ou aguarde um pouco e tente novamente.";
-                            }
-                            throw new Error(finishReasonMessage);
-                         }
-                         console.warn(`O modelo TTS terminou com o motivo: ${candidate.finishReason || 'Desconhecido'}. A tentar usar os dados de áudio se disponíveis.`);
-                    }
 
-                    if (candidate.content?.parts?.[0]?.inlineData?.data) {
-                        let audioDataB64 = candidate.content.parts[0].inlineData.data;
-                        let finalMimeType = candidate.content.parts[0].inlineData.mimeType || 'audio/L16;rate=24000';
-                        lastAttemptedMimeType = finalMimeType;
-                        console.log("Áudio recebido da API. MIME Type Original:", finalMimeType, "Tamanho (base64):", audioDataB64.length);
-                        if (!audioDataB64.trim()) {
-                            throw new Error("Os dados de áudio recebidos da API estão vazios.");
-                        }
-                        if (finalMimeType.toLowerCase().includes("audio/l16") ||
-                            finalMimeType.toLowerCase().includes("audio/l24") ||
-                            finalMimeType.toLowerCase().includes("audio/l32") ||
-                            finalMimeType.toLowerCase().includes("pcm")) {
-                            try {
-                                audioDataB64 = convertPcmToWav(audioDataB64, finalMimeType);
-                                finalMimeType = 'audio/wav';
-                                lastAttemptedMimeType = finalMimeType;
-                                console.log("Áudio convertido para WAV. Novo MIME Type:", finalMimeType);
-                            } catch (conversionError) {
-                                console.error("Erro ao converter PCM para WAV:", conversionError);
-                                throw new Error(`Falha ao converter áudio PCM para WAV: ${conversionError.message}`);
-                            }
-                        }
-                        if(audioPlayer) {
-                            audioPlayer.src = `data:${finalMimeType};base64,${audioDataB64}`;
-                            audioPlayer.onloadeddata = function() {
-                                console.log("Dados do áudio carregados (onloadeddata).");
-                                if(audioPlayerContainer) audioPlayerContainer.style.display = 'block';
-                                audioPlayer.play().catch(playError => {
-                                    console.error("Erro ao tentar reproduzir o áudio:", playError);
-                                    displayErrorMessage("Erro ao iniciar a reprodução do áudio. Interação do utilizador pode ser necessária ou o formato de áudio pode não ser suportado.");
-                                });
-                            };
-                            audioPlayer.load();
-                            console.log("Fala gerada e src do áudio definido. A aguardar carregamento do áudio...");
-                        }
-                    } else {
-                        console.error("Resposta da API TTS não contém dados de áudio válidos, mesmo com finishReason STOP (ou outro):", result);
-                        throw new Error("Não foi possível obter os dados de áudio da resposta da API TTS. A estrutura da resposta pode estar incompleta.");
+                if (result.audioContent) {
+                    const audioDataB64 = result.audioContent;
+                    lastAttemptedMimeType = 'audio/mpeg';
+                    console.log("Áudio MP3 recebido da API. Tamanho (base64):", audioDataB64.length);
+
+                    if(audioPlayer) {
+                        audioPlayer.src = `data:audio/mpeg;base64,${audioDataB64}`;
+                        audioPlayer.onloadeddata = function() {
+                            console.log("Dados do áudio carregados (onloadeddata).");
+                            if(audioPlayerContainer) audioPlayerContainer.style.display = 'block';
+                            audioPlayer.play().catch(playError => {
+                                console.error("Erro ao tentar reproduzir o áudio:", playError);
+                                displayErrorMessage("Erro ao iniciar a reprodução do áudio. Interação do usuário pode ser necessária ou o formato de áudio pode não ser suportado.");
+                            });
+                        };
+                        audioPlayer.load();
+                        console.log("Voz gerada e src do áudio definido. Aguardando carregamento do áudio...");
                     }
                 } else {
-                    console.error("Resposta inesperada da API TTS (sem candidatos):", result);
-                    throw new Error("Resposta da API TTS não contém 'candidates'.");
+                    console.error("Resposta da API TTS não contém 'audioContent':", result);
+                    throw new Error("Não foi possível obter os dados de áudio da resposta da API TTS.");
                 }
             } catch (error) {
-                console.error("Erro ao gerar fala com IA:", error);
+                console.error("Erro ao gerar voz com IA:", error);
                 displayErrorMessage(error.message);
                 if(audioPlayerContainer) audioPlayerContainer.style.display = 'none';
             } finally {
@@ -3048,7 +3061,7 @@
         // Novas Funções
         async function gerarPlanejamentoDeAula() {
             if (!lessonPlanYearSelect || !lessonPlanSubjectSelect || !lessonPlanContentInput || !lessonPlanObjectivesInput || !lessonPlanDurationInput || !lessonPlanStyleSelect || !lessonPlanSizeSelect) {
-                displayErrorMessage("Elementos do formulário de planejamento de aula não encontrados."); return;
+                displayErrorMessage("Elementos do formulário de plano de aula não encontrados."); return;
             }
             const ano = lessonPlanYearSelect.options[lessonPlanYearSelect.selectedIndex].text;
             const materia = lessonPlanSubjectSelect.value;
@@ -3059,7 +3072,7 @@
             const tamanho = lessonPlanSizeSelect.value;
 
             if (!conteudo || !objetivos || !duracao) {
-                displayErrorMessage("Por favor, preencha todos os campos para o planejamento de aula.");
+                displayErrorMessage("Por favor, preencha todos os campos para o plano de aula.");
                 return;
             }
             if (!geminiFlashApiKey) {
@@ -3067,7 +3080,7 @@
                 return;
             }
             clearErrorMessage();
-            showLoading("A gerar planejamento de aula...");
+            showLoading("Gerando plano de aula...");
             if(lessonPlanDisplayContainer) lessonPlanDisplayContainer.style.display = 'none';
             if(btnExportLessonPlanPdf) btnExportLessonPlanPdf.style.display = 'none';
 
@@ -3091,7 +3104,7 @@ Não use formatação Markdown como asteriscos.`;
                 });
                 if (!response.ok) {
                     const errorData = await response.json();
-                    throw new Error(`Erro da API ao gerar planejamento (${response.status}): ${errorData?.error?.message || response.statusText}`);
+                    throw new Error(`Erro da API ao gerar plano de aula (${response.status}): ${errorData?.error?.message || response.statusText}`);
                 }
                 const result = await response.json();
                 if (result.candidates?.[0]?.content?.parts?.[0]?.text) {
@@ -3100,7 +3113,7 @@ Não use formatação Markdown como asteriscos.`;
                     if(lessonPlanDisplayContainer) lessonPlanDisplayContainer.style.display = 'block';
                     if(btnExportLessonPlanPdf) btnExportLessonPlanPdf.style.display = 'inline-flex';
                 } else {
-                    throw new Error("Não foi possível obter o planejamento da resposta da API.");
+                    throw new Error("Não foi possível obter o plano de aula da resposta da API.");
                 }
             } catch (error) {
                 displayErrorMessage(error.message);
@@ -3111,7 +3124,7 @@ Não use formatação Markdown como asteriscos.`;
 
         async function verificarAssunto() {
             if (!verifySubjectYearSelect || !verifySubjectSubjectSelect || !verifySubjectContentSelect) {
-                displayErrorMessage("Elementos do formulário de verificação de assunto não encontrados."); return;
+                displayErrorMessage("Elementos do formulário de verificação de conteúdo não encontrados."); return;
             }
             const ano = verifySubjectYearSelect.options[verifySubjectYearSelect.selectedIndex].text;
             const materia = verifySubjectSubjectSelect.value;
@@ -3126,7 +3139,7 @@ Não use formatação Markdown como asteriscos.`;
                 return;
             }
             clearErrorMessage();
-            showLoading(`A verificar assunto: ${conteudo}...`);
+            showLoading(`Verificando conteúdo: ${conteudo}...`);
             if(subjectVerificationDisplayContainer) subjectVerificationDisplayContainer.style.display = 'none';
             if(btnExportSubjectVerificationPdf) btnExportSubjectVerificationPdf.style.display = 'none';
 
@@ -3151,7 +3164,7 @@ O texto deve ser claro, informativo e preciso. Não use formatação Markdown co
                 });
                 if (!response.ok) {
                     const errorData = await response.json();
-                    throw new Error(`Erro da API ao verificar assunto (${response.status}): ${errorData?.error?.message || response.statusText}`);
+                    throw new Error(`Erro da API ao verificar conteúdo (${response.status}): ${errorData?.error?.message || response.statusText}`);
                 }
                 const result = await response.json();
                 if (result.candidates?.[0]?.content?.parts?.[0]?.text) {
@@ -3160,7 +3173,7 @@ O texto deve ser claro, informativo e preciso. Não use formatação Markdown co
                     if(subjectVerificationDisplayContainer) subjectVerificationDisplayContainer.style.display = 'block';
                     if(btnExportSubjectVerificationPdf) btnExportSubjectVerificationPdf.style.display = 'inline-flex';
                 } else {
-                    throw new Error("Não foi possível obter a verificação do assunto da API.");
+                    throw new Error("Não foi possível obter a verificação do conteúdo da API.");
                 }
             } catch (error) {
                 displayErrorMessage(error.message);
@@ -3191,7 +3204,7 @@ O texto deve ser claro, informativo e preciso. Não use formatação Markdown co
                 return;
             }
             clearErrorMessage();
-            showLoading("A gerar prova...");
+            showLoading("Gerando prova...");
             if(proofDisplayContainer) proofDisplayContainer.style.display = 'none';
             if(btnExportProofPdf) btnExportProofPdf.style.display = 'none';
 
@@ -3199,9 +3212,9 @@ O texto deve ser claro, informativo e preciso. Não use formatação Markdown co
             if (tipoQuestao === "Objetivas") {
                 tipoQuestaoPrompt = "As questões devem ser exclusivamente objetivas (múltipla escolha com 4 alternativas A, B, C, D, ou Verdadeiro/Falso).";
             } else if (tipoQuestao === "Subjetivas") {
-                tipoQuestaoPrompt = "As questões devem ser exclusivamente subjetivas (dissertativas, problemas para resolver, interpretação de texto).";
+                tipoQuestaoPrompt = "As questões devem ser exclusivamente discursivas (dissertativas, problemas para resolver, interpretação de texto).";
             } else { // Ambas
-                tipoQuestaoPrompt = "As questões devem ser uma mistura de objetivas (múltipla escolha com 4 alternativas A, B, C, D, ou Verdadeiro/Falso) e subjetivas (dissertativas, problemas).";
+                tipoQuestaoPrompt = "As questões devem ser uma mistura de objetivas (múltipla escolha com 4 alternativas A, B, C, D, ou Verdadeiro/Falso) e discursivas (dissertativas, problemas).";
             }
 
             const prompt = `Crie uma prova com ${numQuestoes} questões sobre ${materia} para ${ano}, cobrindo o(s) seguinte(s) conteúdo(s): "${conteudos}".
@@ -3243,6 +3256,125 @@ Não use formatação Markdown como asteriscos ou negrito excessivo.`;
                 hideLoading();
             }
         }
+
+        async function resumirVideoYouTube() {
+            if (!youtubeLinkInput || !youtubeSummarySizeSelect || !youtubeSummaryToneSelect) {
+                displayErrorMessage("Elementos do formulário de resumo do YouTube não encontrados."); return;
+            }
+            const videoLink = youtubeLinkInput.value.trim();
+            const summarySize = youtubeSummarySizeSelect.value;
+            const summaryTone = youtubeSummaryToneSelect.value;
+
+            if (!videoLink) {
+                displayErrorMessage("Por favor, insira o link do vídeo do YouTube.");
+                return;
+            }
+             // Melhor validação de link do YouTube
+            if (!videoLink.includes("youtube.com/watch?v=") && !videoLink.includes("youtu.be/")) {
+                displayErrorMessage("Por favor, insira um link válido do YouTube (ex: https://www.youtube.com/watch?v=xxxx ou https://youtu.be/xxxx).");
+                return;
+            }
+
+
+            if (!geminiFlashApiKey) {
+                displayErrorMessage("A API key para o serviço Gemini não está configurada.");
+                return;
+            }
+            clearErrorMessage();
+            showLoading("Resumindo vídeo do YouTube...");
+            if(youtubeSummaryContainer) youtubeSummaryContainer.style.display = 'none';
+            if(btnExportYoutubeSummaryPdf) btnExportYoutubeSummaryPdf.style.display = 'none';
+
+            const prompt = `Analise o seguinte link de um vídeo do YouTube: ${videoLink}.
+Com base no título e em qualquer metadado que você possa inferir DESTE LINK (sem acessar conteúdo externo ou assistir ao vídeo), tente identificar o tema principal do vídeo.
+Em seguida, crie um resumo ${summarySize} com um tom ${summaryTone} sobre este tema.
+Se o tamanho for "tópicos", liste os principais pontos abordados no vídeo.
+Não use formatação Markdown como asteriscos.
+Se não for possível determinar um tema específico a partir do link, informe que não pode fornecer um resumo detalhado do conteúdo do vídeo, mas pode oferecer uma discussão geral sobre o tópico se ele for claramente identificável a partir do título.`;
+
+            try {
+                const payload = {
+                    contents: [{ role: "user", parts: [{ text: prompt }] }],
+                    generationConfig: { temperature: 0.7, maxOutputTokens: summarySize === 'detalhado' ? 1500 : (summarySize === 'padrão' ? 800 : 500) }
+                };
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${geminiFlashApiKey}`;
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(`Erro da API ao resumir vídeo (${response.status}): ${errorData?.error?.message || response.statusText}`);
+                }
+                const result = await response.json();
+                if (result.candidates?.[0]?.content?.parts?.[0]?.text) {
+                    const summary = result.candidates[0].content.parts[0].text.replace(/\*\*/g, '');
+                    if(generatedYoutubeSummaryText) generatedYoutubeSummaryText.textContent = summary;
+                    if(youtubeSummaryContainer) youtubeSummaryContainer.style.display = 'block';
+                    if(btnExportYoutubeSummaryPdf) btnExportYoutubeSummaryPdf.style.display = 'inline-flex';
+                } else {
+                    throw new Error("Não foi possível obter o resumo do vídeo da API.");
+                }
+            } catch (error) {
+                displayErrorMessage(error.message);
+            } finally {
+                hideLoading();
+            }
+        }
+
+        async function enviarSugestao() {
+            if (!suggestionTextInput || !window.firebaseServices || !window.firebaseServices.db) {
+                displayErrorMessage("Erro: Funcionalidade de sugestão não está pronta.");
+                return;
+            }
+            const suggestion = suggestionTextInput.value.trim();
+            if (!suggestion) {
+                displaySuggestionMessage("Por favor, escreva sua sugestão.", true);
+                return;
+            }
+
+            const user = window.firebaseServices.auth.currentUser;
+            if (!user) {
+                displaySuggestionMessage("Você precisa estar logado para enviar uma sugestão.", true);
+                return;
+            }
+
+            showLoading("Enviando sugestão...");
+            try {
+                const currentAppId = window.fbConfig?.appId || 'default-rad-ia-app';
+                const suggestionsCollectionPath = `artifacts/${currentAppId}/public/data/sugestoesRadIA`;
+                console.log("Tentando escrever em:", suggestionsCollectionPath);
+
+
+                await window.firebaseServices.addDoc(window.firebaseServices.collection(window.firebaseServices.db, suggestionsCollectionPath), {
+                    userId: user.uid,
+                    email: user.email,
+                    username: user.displayName || "Não definido",
+                    sugestao: suggestion,
+                    timestamp: window.firebaseServices.serverTimestamp()
+                });
+                displaySuggestionMessage("Sugestão enviada com sucesso! Obrigado.", false);
+                suggestionTextInput.value = "";
+            } catch (error) {
+                console.error("Erro ao enviar sugestão:", error);
+                displaySuggestionMessage("Erro ao enviar sugestão. Tente novamente.", true);
+            } finally {
+                hideLoading();
+            }
+        }
+
+        function displaySuggestionMessage(message, isError) {
+            if (!suggestionMessageElement) return;
+            suggestionMessageElement.textContent = message;
+            suggestionMessageElement.style.backgroundColor = isError ? "#721c24" : "var(--btn-green)";
+            suggestionMessageElement.style.color = isError ? "#f8d7da" : "white";
+            suggestionMessageElement.style.display = 'block';
+            setTimeout(() => {
+                if (suggestionMessageElement) suggestionMessageElement.style.display = 'none';
+            }, 4000);
+        }
+
 
     </script>
 
